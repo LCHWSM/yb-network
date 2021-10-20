@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.SORecordMapper">
+
+
+    <update id="updateRecord">
+    update sorecord set sorecordNum=#{map.productNum},sorecordName=#{map.productName},specification=#{map.specification},amount=#{map.amount},remarks=#{map.remarks},supplierId=#{map.supplierId} where sorecordId=#{map.sorecordId} ;
+    </update>
+
+    <!--删除已添加商品记录-->
+    <delete id="deleteRecord">
+        delete from sorecord where sorecordId=#{soRecordId}
+    </delete>
+
+
+    <!--根据用户ID查询所有用户填写的供应商商品信息-->
+    <select id="findAllById" resultType="com.ybau.transaction.domain.SORecord">
+        select sd.*,sr.supplierName from sorecord sd
+        left join supplier sr on sr.supplierId=sd.supplierId
+         where userId=#{id}
+        <if test="map.sorecordNum!=null and map.sorecordNum!=''">and sorecordNum like
+            CONCAT('%',#{map.sorecordNum},'%')
+        </if>
+        <if test="map.sorecordName!=null and map.sorecordName!=''">and sorecordName like
+            CONCAT('%',#{map.sorecordName},'%')
+        </if>
+    </select>
+</mapper>

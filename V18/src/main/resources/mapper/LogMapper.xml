@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.LogMapper">
+
+
+    <resultMap id="logMap" type="com.ybau.transaction.domain.Log">
+        <id column="logId" property="logId"/>
+        <result column="logName" property="logName"></result>
+        <result column="logTime" property="logTime"></result>
+        <result column="logRemarks" property="logRemarks"></result>
+        <result column="logClassify" property="logClassify"></result>
+        <result column="logSubject" property="logSubject"></result>
+        <result column="logCore" property="logCore"></result>
+        <result column="logOrderId" property="logOrderId"></result>
+        <result column="oName" property="organizationName"></result>
+        <association property="logUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="coLogMap" type="com.ybau.transaction.domain.CoLog">
+        <id column="coLogId" property="coLogId"></id>
+        <result column="coLogName" property="coLogName"></result>
+        <result column="coLogTime" property="coLogTime"></result>
+        <result column="operationTime" property="operationTime"></result>
+        <result column="coRemark" property="coRemark"></result>
+        <association property="operationUser" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"></id>
+            <result column="userName" property="userName"></result>
+            <result column="name" property="name"></result>
+        </association>
+    </resultMap>
+    <resultMap id="SupplierOrderLogMap" type="com.ybau.transaction.domain.SupplierOrderLog">
+
+        <id column="supplierLogId" property="supplierLogId"></id>
+        <result column="classify" property="classify"></result>
+        <result column="logName" property="logName"></result>
+        <result column="logOrderId" property="logOrderId"></result>
+        <result column="logRemarks" property="logRemarks"></result>
+        <result column="logTime" property="logTime"></result>
+        <result column="operationTime" property="operationTime"></result>
+        <association property="logUser" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"></id>
+            <result column="userName" property="userName"></result>
+            <result column="name" property="name"></result>
+        </association>
+    </resultMap>
+
+
+    <!--存入操作记录-->
+    <insert id="saveProductLog">
+
+        insert into log(logName, logUser, logTime, logRemarks, logClassify, logSubject, logCore, logOrderId)
+        values (#{map.logName}, #{map.logUser}, #{map.logTime}, #{map.logRemarks}, #{map.logClassify},
+                #{map.logSubject}, #{map.logCore}, #{map.logOrderId})
+
+    </insert>
+    <!--插入订单操作记录-->
+    <insert id="saveCoLog">
+        insert into colog (coLogName, coLogTime, operationUser, operationTime, coId, coRemark, coClassify)
+        values (#{map.coLogName}, #{map.coLogTime}, #{map.updateUser}, #{map.updateTime}, #{map.coId}, #{map.coRemark},
+                #{map.coClassify});
+
+    </insert>
+
+    <!--存入供应商订单相关日志操作-->
+    <insert id="saveSupplierLog">
+        insert into supplierlog (logName, logUser, logTime, logRemarks, logOrderId, classify, operationTime)
+        values (#{map.logName}, #{map.logUser}, #{map.logTime}, #{map.logRemarks}, #{map.logOrderId}, #{map.classify},
+                #{map.operationTime})
+
+    </insert>
+    <!--根据日志ID删除日志-->
+    <delete id="deleteClearing">
+
+        delete
+        from clearinglog
+        where clearingLogId = #{logId}
+    </delete>
+    <!--查询日志（分页，条件筛选）-->
+    <select id="findAll" resultMap="logMap">
+        SELECT l.*,au.id auId,au.username auUserName,au.name auName,org.organizationName oName FROM log l
+        LEFT JOIN user au ON l.logUser=au.id
+        LEFT JOIN organization org ON l.logSubject=org.organizationId
+        WHERE 1=1
+        <if test="map.logUser!=null and map.logUser!=''">and au.username like CONCAT('%',#{map.logUser},'%')</if>
+        <if test="map.startTime!=null and map.startTime!=''">AND logTime &gt;= #{map.startTime}</if>
+        <if test="map.endTime!=null and map.endTime!=''">and logTime &lt;= #{map.endTime}</if>
+        <if test="map.logClassify!=null and map.logClassify!=''">and logClassify=#{map.logClassify}</if>
+        <if test="map.logSubject!=null and map.logSubject!=''">and logSubject = #{map.logSubject}</if>
+        <if test="map.logCore!=null and map.logCore!=''">and logCore like CONCAT('%',#{map.logCore},'%')</if>
+        <if test="map.orderId!=null and map.orderId!=''">and logSubject like CONCAT('%',#{map.orderId},'%')</if>
+        ORDER BY logTime DESC
+    </select>
+    <!--查询定制订单操作记录-->
+    <select id="findCoLog" resultMap="coLogMap">
+        select cl.*, user.id, user.username, user.name
+        from colog cl
+                 left join user on user.id = cl.operationUser
+        where coId = #{map.coId}
+          and coClassify = #{map.classify}
+        order by operationTime desc
+    </select>
+    <!--根据定制订单ID查询定制订单操作记录-->
+    <select id="findByCoId" resultType="java.lang.String">
+        select coRemark
+        from colog
+        where coId = #{coId}
+          and coClassify = 1
+        order by operationTime desc
+        LIMIT 1;
+    </select>
+    <!--查询供应商订单操作日志-->
+    <select id="findSupplierLog" resultMap="SupplierOrderLogMap">
+        select sl.*,user.id ,user.username,user.name from supplierlog sl
+        left join user on sl.logUser=user.id
+        where sl.classify=#{map.classify} and sl.logOrderId=#{map.logOrderId}
+        <if test="map.username!=null and map.username!=''">and user.username like CONCAT('%',#{map.username},'%')</if>
+        order by logTime desc
+    </select>
+
+    <!--根据用户ID查询导入订单记录-->
+    <select id="findLeadOrder" resultMap="logMap">
+        select clearingLogId logId,clearingLogName logName,clearingLogTime logTime,consignee logOrderId,username
+        auUserName,name auName from clearinglog
+        left join user on clearinglog.clearingLogUser=user.id
+        where classify=9
+        <if test="id!=null and id!=''">and clearingLogUser=#{id}</if>
+        <if test="endTime!=null and endTime!=''">and clearingLogTime&lt;= #{endTime}</if>
+        <if test="startTime!=null and startTime!=''">and clearingLogTime &gt;= #{startTime}</if>
+        order by clearingLogTime desc
+    </select>
+</mapper>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.DataStatisticsMapper">
+
+
+    <resultMap id="organizationMap" type="com.ybau.transaction.domain.Organization">
+        <id column="organizationId" property="organizationId"/>
+        <result column="organizationName" property="organizationName"></result>
+        <collection property="dataStatistics" ofType="com.ybau.transaction.domain.DataStatistics">
+            <id column="dataStatisticsId" property="dataStatisticsId"/>
+            <result column="paymentMethod" property="paymentMethod"></result>
+            <result column="companyOrderSum" property="companyOrderSum"></result>
+            <result column="companyOrderQuit" property="companyOrderQuit"></result>
+            <result column="companyOrderTrun" property="companyOrderTrun"></result>
+            <result column="orderSumNumber" property="orderSumNumber"></result>
+            <result column="orderQuitNumber" property="orderQuitNumber"></result>
+            <result column="orderTrunNumber" property="orderTrunNumber"></result>
+        </collection>
+    </resultMap>
+
+    <!--新增数据统计信息-->
+    <insert id="insertDataStatistics">
+        insert into datastatistics (organizationId, paymentMethod, companyOrderSum, companyOrderQuit, companyOrderTrun,
+                                    orderSumNumber, orderQuitNumber, orderTrunNumber)
+        values (#{organizationId}, #{paymentMethod}, #{companyOrderSum}, #{companyOrderQuit}, #{companyOrderTrun},
+                #{orderSumNumber}, #{orderQuitNumber}, #{orderTrunNumber})
+    </insert>
+    <!--插入数据信息（时间）-->
+    <insert id="insertTimeDataStatistics">
+        insert into timedatasta (organizationId, paymentMethod, companyOrderSum, companyOrderQuit, companyOrderTrun,
+                                 orderSumNumber, orderQuitNumber, orderTrunNumber, datatime)
+        values (#{organizationId}, #{paymentMethod}, #{companyOrderSum}, #{companyOrderQuit}, #{companyOrderTrun},
+                #{orderSumNumber}, #{orderQuitNumber}, #{orderTrunNumber}, #{time})
+
+    </insert>
+    <!--修改数据统计-->
+    <update id="updateDataStatistics">
+        update datastatistics
+        set companyOrderSum=#{companyOrderSum},
+            companyOrderQuit=#{companyOrderQuit},
+            companyOrderTrun=#{companyOrderTrun},
+            orderSumNumber=#{orderSumNumber},
+            orderQuitNumber=#{orderQuitNumber},
+            orderTrunNumber=#{orderTrunNumber}
+        where organizationId = #{organizationId}
+          and paymentMethod = #{paymentMethod}
+    </update>
+    <!--更改数据信息（时间）-->
+    <update id="updateTimeDataStatistics">
+        update timedatasta
+        set companyOrderSum=#{companyOrderSum},
+            companyOrderQuit=#{companyOrderQuit},
+            companyOrderTrun=#{companyOrderTrun},
+            orderSumNumber=#{orderSumNumber},
+            orderQuitNumber=#{orderQuitNumber},
+            orderTrunNumber=#{orderTrunNumber}
+        where organizationId = #{organizationId}
+          and paymentMethod = #{paymentMethod}
+          and datatime = #{time}
+    </update>
+    <!--查询所有公司数据统计-->
+    <select id="findAll" resultMap="organizationMap">
+        select oi.organizationId, oi.organizationName, ds.*
+        from organization oi
+                 left join datastatistics ds on oi.organizationId = ds.organizationId
+
+    </select>
+    <!--查询公司按时间统计数据-->
+    <select id="findTime" resultType="java.util.Map">
+        select td.*
+        from timedatasta td
+        where td.organizationId = #{map.organizationId}
+        order by datatime desc,timedatasta asc
+    </select>
+
+    <resultMap id="orderMap" type="com.ybau.transaction.domain.Order">
+        <id column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"></result>
+        <result column="receiverName" property="receiverName"></result>
+        <result column="receiverMobile" property="receiverMobile"></result>
+        <result column="expressOnly" property="expressOnly"></result>
+        <result column="site" property="site"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="paymentMethod" property="paymentMethod"></result>
+        <result column="sumMoney" property="sumMoney"></result>
+        <result column="returnTime" property="returnTime"></result>
+        <result column="audit" property="audit"></result>
+        <result column="addUser" property="addUser"/>
+        <result column="addCompany" property="addCompany"></result>
+        <result column="auditNode" property="auditFlowGrade"></result>
+        <result column="processGroupId" property="processGroupId"></result>
+        <result column="actualMoney" property="actualMoney"></result>
+        <result column="freight" property="freight"></result>
+        <result column="retreatCargo" property="retreatCargo"></result>
+        <result column="orderRemark" property="orderRemark"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="orderSign" property="orderSign"></result>
+        <result column="serveCost" property="serveCost"></result>
+        <result column="orderInvoiceId" property="orderInvoiceId"></result>
+        <result column="refundAmount" property="refundAmount"></result>
+        <result column="proposer" property="proposer"></result>
+        <result column="dingNumber" property="dingNumber"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"/>
+            <result column="organizationName" property="organizationName"/>
+        </association>
+        <association property="contract" javaType="com.ybau.transaction.domain.Contract">
+            <id column="contractId" property="contractId"/>
+            <result column="contractName" property="contractName"/>
+            <result column="contractNumber" property="contractNumber"/>
+        </association>
+        <association property="express" javaType="com.ybau.transaction.domain.Express">
+            <id column="expressId" property="expressId"/>
+            <result column="expressName" property="expressName"/>
+            <result column="expressNumbers" property="expressNumbers"/>
+            <result column="retreatName" property="retreatName"/>
+            <result column="retreatNumbers" property="retreatNumbers"/>
+            <result column="retreatTime" property="retreatTime"/>
+            <result column="practicalTime" property="practicalTime"/>
+        </association>
+        <association property="invoice" javaType="com.ybau.transaction.domain.Invoice">
+            <id column="invoiceId" property="invoiceId"/>
+            <result column="unitName" property="unitName"/>
+            <result column="invoiceNumber" property="invoiceNumber"/>
+            <result column="unitSite" property="unitSite"/>
+            <result column="unitPhone" property="unitPhone"/>
+            <result column="bankAccount" property="bankAccount"/>
+            <result column="bankDeposit" property="bankDeposit"/>
+            <result column="flag" property="flag"/>
+            <result column="email" property="email"/>
+            <result column="invoiceType" property="invoiceType"/>
+            <result column="ticketSite" property="ticketSite"/>
+        </association>
+
+        <association property="goodsDetail" column="orderId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.GoodsMapper.findByOrdersId"/>
+        <association property="auditFlowList" column="processGroupId"
+                     javaType="java.util.List"
+                     select="com.ybau.transaction.mapper.AuditFlowMapper.findByProcessGroupId"/>
+    </resultMap>
+    <!--按公司ID 和时间查询具体订单-->
+    <select id="findByOrder" resultMap="orderMap">
+
+        select
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where 1=1
+        <if test='startTime!=null'>AND os.orderTime &gt;= #{startTime}</if>
+        <if test='nextTime!=null'>AND os.orderTime &lt; #{nextTime}</if>
+        <if test='organizationId!=null'>and os.addCompany = #{organizationId}</if>
+        ORDER BY os.orderTime DESC
+
+    </select>
+</mapper>

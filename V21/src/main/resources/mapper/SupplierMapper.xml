@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.SupplierMapper">
+
+    <resultMap id="supplierMap" type="com.ybau.transaction.domain.Supplier">
+        <id column="supplierId" property="supplierId"></id>
+        <result column="supplierName" property="supplierName"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="supplierPhone" property="supplierPhone"></result>
+        <result column="supplierSite" property="supplierSite"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+    <!--新增供应商信息-->
+    <insert id="saveSupplier">
+        insert into supplier (supplierName, addUser, addTime, supplierPhone, supplierSite)
+        values (#{map.supplierName}, #{map.addUser}, #{map.addTime}, #{map.supplierPhone}, #{map.supplierSite});
+    </insert>
+    <!--修改供应商信息-->
+    <update id="updateSupplier">
+        update supplier
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.supplierName!=null and map.supplierName!=''">supplierName=#{map.supplierName},</if>
+            <if test="map.supplierPhone!=null and map.supplierPhone!=''">supplierPhone=#{map.supplierPhone},</if>
+            <if test="map.supplierSite!=null and map.supplierSite!=''">supplierSite=#{map.supplierSite},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+        </trim>
+        where supplierId=#{map.supplierId}
+    </update>
+    <!--删除成功-->
+    <delete id="deleteById">
+        delete
+        from supplier
+        where supplierId = #{supplierId}
+    </delete>
+
+    <!--查询所有供应商信息 （分页 筛选）-->
+    <select id="findAll" resultMap="supplierMap">
+        select sr.*,au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name uuName
+        from supplier sr
+        left join user au on sr.addUser=au.id
+        left join user uu on sr.updateUser=uu.id
+        where 1=1
+        <if test="map.supplierName!=null and map.supplierName!=''">and supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        order by addTime desc
+    </select>
+
+    <!--查询供应商信息-->
+    <select id="findSupplier" resultType="com.ybau.transaction.domain.Supplier">
+        select supplier.supplierName,supplier.supplierId
+        from organization_supplier os
+        left join supplier on supplier.supplierId=os.supplierId
+        and os.organizationId=#{organizationId}
+        <if test="supplierName!=null and supplierName!=''">and supplierName like
+            CONCAT('%',#{supplierName},'%')
+        </if>
+    </select>
+    <!--查询供应商订单-->
+    <select id="findBySupplier" resultType="com.ybau.transaction.domain.Supplier">
+        select supplierName,supplierId from supplier
+        where 1=1
+        <if test="supplierName!=null and supplierName!=''">and supplierName like
+            CONCAT('%',#{supplierName},'%')
+        </if>
+    </select>
+    <!--根据供应商ID查询该供应商是否有下属订单-->
+    <select id="findBySupplierId" resultType="java.lang.Integer">
+        select count(supplierOrderId) from supplierorder
+        where supplierId = #{supplierId}
+
+    </select>
+
+
+</mapper>

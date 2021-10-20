@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.SupplierContractMapper">
+
+
+    <resultMap id="supplierContractMap" type="com.ybau.transaction.domain.Contract">
+        <id column="supplierContractId" property="contractId"/>
+        <result column="supplierContractName" property="contractName"></result>
+        <result column="supplierContractNumber" property="contractNumber"></result>
+        <result column="supplierContractSite" property="contractSite"></result>
+        <result column="remark" property="remark"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="addTime" property="addTime"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"/>
+            <result column="organizationName" property="organizationName"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+    <!--插入合同-->
+    <insert id="saveContract" useGeneratedKeys="true" keyProperty="supplierContractId" keyColumn="supplierContractId">
+        insert into suppliercontract (supplierContractName, supplierContractNumber, addUser, addTime,
+                                      supplierContractSite, remark, organizationId)
+        VALUES (#{map.supplierContractName}, #{map.supplierContractNumber}, #{map.addUser}, #{map.addTime},
+                #{map.supplierContractSite}, #{map.remark}, #{map.organizationId})
+
+
+    </insert>
+
+    <!--根据合同ID删除合同-->
+    <delete id="deleteContr">
+        delete
+        from suppliercontract
+        where supplierContractId = #{supplierContractId}
+
+    </delete>
+
+
+    <!--根据订单ID查询订单关联的合同-->
+    <select id="findBySrId" resultMap="supplierContractMap">
+        select sc.*,
+               au.id       auId,
+               au.username auUserName,
+               au.name     auName,
+               uu.id       uuId,
+               uu.username uuUserName,
+               uu.name     uuName,
+               oi.organizationId,
+               oi.organizationName
+        from supplierorder so
+                 left join suppliercontract sc on sc.supplierContractId = so.supplierContractId
+                 left join user au on sc.addUser = au.id
+                 left join user uu on sc.updateUser = uu.id
+                 left join organization oi on sc.organizationId = oi.organizationId
+        where so.supplierOrderId = #{srId}
+
+    </select>
+    <!--根据合同ID查询合同信息-->
+    <select id="findById" resultType="com.ybau.transaction.domain.Contract">
+        select organizationId, addUser
+        from suppliercontract
+        where supplierContractId = #{supplierContractId}
+
+    </select>
+
+</mapper>

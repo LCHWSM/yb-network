@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.ContractMapper">
+
+    <resultMap id="contractMap" type="com.ybau.transaction.domain.Contract">
+        <id column="contractId" property="contractId"/>
+        <result column="contractName" property="contractName"></result>
+        <result column="contractNumber" property="contractNumber"></result>
+        <result column="contractSite" property="contractSite"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="remark" property="remark"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"/>
+            <result column="organizationName" property="organizationName"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+    <!--新增合同信息-->
+    <insert id="saveContract" useGeneratedKeys="true" keyProperty="contractId" keyColumn="contractId">
+        insert into contract (contractName, contractNumber, addUser, addTime, contractSite, remark, organizationId)
+        values (#{map.contractName}, #{map.contractNumber}, #{map.addUser}, #{map.addTime}, #{map.contractSite},
+                #{map.remark}, #{map.organizationId})
+    </insert>
+    <!--订单关联合同-->
+    <update id="saveContractId">
+        update orders
+        set contractId=#{contractId}
+        where orderId = #{orderId}
+
+    </update>
+    <!--修改合同信息-->
+    <update id="updateContract">
+        update contract
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.contractName!=null and map.contractName!=''">contractName=#{map.contractName},</if>
+            <if test="map.contractNumber!=null and map.contractNumber!=''">contractNumber=#{map.contractNumber},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+            <if test="map.contractSite!=null and map.contractSite!=''">contractSite=#{map.contractSite},</if>
+            <if test="map.remark!=null">remark=#{map.remark},</if>
+            <if test="map.organizationId!=null">organizationId=#{map.organizationId},</if>
+        </trim>
+        where contractId=#{map.contractId}
+    </update>
+    <!--取消订单关联合同-->
+    <update id="updateConByOrderId">
+        update orders
+        set contractId=0
+        where orderId = #{orderId}
+    </update>
+
+
+    <!--根据合同ID删除合同-->
+    <delete id="deleteByContractId">
+        delete
+        from contract
+        where contractId = #{contractId}
+    </delete>
+    <!--删除合同信息-->
+    <delete id="deleteContract">
+        delete
+        from contract
+        where contractId = #{contractId}
+
+    </delete>
+
+    <!--查询合同列表（分页）-->
+    <select id="findAll" resultMap="contractMap">
+        select c.*,au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name
+        uuName,oi.organizationId,oi.organizationName
+        from contract c
+        left join user au on c.addUser=au.id
+        left join user uu on c.updateUser=uu.id
+        left join organization oi on c.organizationId=oi.organizationId
+        where 1=1
+        <if test="map.contractName!=null and map.contractName!=''">and contractName like
+            CONCAT('%',#{map.contractName},'%')
+        </if>
+        <if test="map.contractNumber!=null and map.contractNumber!=''">and contractNumber like
+            CONCAT('%',#{map.contractNumber},'%')
+        </if>
+        order By addTime DESC
+    </select>
+    <!--查询合同名字或合同编号是否有重复-->
+    <select id="findContractName" resultType="java.lang.Integer">
+        select count(contractId)
+        from contract
+        where contractName = #{contractName}
+           or contractNumber = #{contractNumber}
+    </select>
+    <!--根据合同ID查询该合同下是否存在订单-->
+    <select id="findByOrder" resultType="java.lang.Integer">
+        select count(orderId)
+        from orders
+        where contractId = #{contractId}
+    </select>
+    <!--根据合同ID查询合同信息-->
+    <select id="findByContractId" resultMap="contractMap">
+        select c.*, o.*
+        from contract c
+                 LEFT JOIN orders o ON o.contractId = c.contractId
+        where c.contractId = #{id}
+    </select>
+    <select id="findById" resultType="com.ybau.transaction.domain.Contract">
+        select organizationId,addUser
+        from contract
+        where contractId = #{contractId}
+
+    </select>
+    <select id="findByOrderId" resultMap="contractMap">
+        select ct.*,
+               au.id       auId,
+               au.username auUserName,
+               au.name     auName,
+               uu.id       uuId,
+               uu.username uuUserName,
+               uu.name     uuName,
+               oi.organizationId,
+               oi.organizationName
+        from orders
+                 left join contract ct on ct.contractId = orders.contractId
+                 left join user au on ct.addUser = au.id
+                 left join user uu on ct.updateUser = uu.id
+                 left join organization oi on ct.organizationId = oi.organizationId
+        where orders.orderId = #{orderId}
+    </select>
+
+
+</mapper>

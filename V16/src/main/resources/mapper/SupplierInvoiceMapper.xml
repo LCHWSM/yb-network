@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.SupplierInvoiceMapper">
+
+    <resultMap id="supplierInvoice" type="com.ybau.transaction.domain.SupplierInvoice">
+        <id column="supplierInvoiceId" property="supplierInvoiceId"/>
+        <result column="supplierInvoiceName" property="supplierInvoiceName"></result>
+        <result column="supplierInvoiceNum" property="supplierInvoiceNum"></result>
+        <result column="supplierInvoiceSite" property="supplierInvoiceSite"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="remarks" property="remarks"></result>
+        <result column="addUser" property="userId"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+    <resultMap id="supplierInvoiceMap" type="com.ybau.transaction.domain.OrderInvoice">
+        <id column="supplierInvoiceId" property="orderInvoiceId"/>
+        <result column="supplierInvoiceName" property="orderInvoiceName"></result>
+        <result column="supplierInvoiceNum" property="orderInvoiceNumber"></result>
+        <result column="supplierInvoiceSite" property="orderInvoiceSite"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="remarks" property="remarks"></result>
+        <result column="addUser" property="userId"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+    <!--新增发票附件-->
+    <insert id="saveInvoiceUser" useGeneratedKeys="true" keyProperty="supplierInvoiceId" keyColumn="supplierInvoiceId">
+        insert into supplierinvoice (supplierInvoiceName, supplierInvoiceNum, addUser, addTime, supplierInvoiceSite,
+                                     remarks)
+        values (#{supplierInvoiceName}, #{supplierInvoiceNum}, #{addUser}, #{addTime}, #{supplierInvoiceSite},
+                #{remarks})
+
+    </insert>
+    <!--修改供应商发票-->
+    <update id="updateInvoiceUser">
+        update supplierinvoice
+        <trim prefix="set" suffixOverrides=",">
+            supplierInvoiceName=#{map.supplierInvoiceName}, remarks=#{map.remarks},
+            <if test="map.supplierInvoiceNum!=null and map.supplierInvoiceNum!=''">
+                supplierInvoiceNum=#{map.supplierInvoiceNum},
+            </if>
+            <if test="map.supplierInvoiceSite!=null and map.supplierInvoiceSite!=''">
+                supplierInvoiceSite=#{map.supplierInvoiceSite},
+            </if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+        </trim>
+        where supplierInvoiceId=#{map.supplierInvoiceId}
+    </update>
+    <!--根据发票ID删除发票信息-->
+    <delete id="deleteInvoice">
+        delete
+        from supplierinvoice
+        where supplierInvoiceId = #{supplierInvoiceId}
+
+    </delete>
+
+    <!--根据订单ID查询发票附件信息-->
+    <select id="findOrderId" resultMap="supplierInvoiceMap">
+
+        select si.*,
+               au.id       auId,
+               au.username auUserName,
+               au.name     auName,
+               uu.id       uuId,
+               uu.username uuUserName,
+               uu.name     uuName
+        from supplierorder so
+                 left join supplierinvoice si on so.supplierInvoiceId = si.supplierInvoiceId
+                 left join user au on au.id = si.addUser
+                 left join user uu on uu.id = si.updateUser
+        where so.supplierOrderId = #{supplierOrderId}
+    </select>
+    <!--根据发票附件ID查询发票附件信息-->
+    <select id="findSupplierInvoice" resultMap="supplierInvoice">
+        select *
+        from supplierinvoice
+        where supplierInvoiceId = #{supplierInvoiceId}
+    </select>
+</mapper>

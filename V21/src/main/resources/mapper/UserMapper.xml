@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.UserMapper">
+
+    <resultMap id="organizationMap" type="com.ybau.transaction.domain.Organization">
+        <id column="organizationId" property="organizationId"/>
+        <result column="organizationName" property="organizationName"></result>
+        <association property="users" column="organizationId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.UserMapper.findOId"/>
+    </resultMap>
+
+    <resultMap id="userMap" type="com.ybau.transaction.domain.User">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="email" property="email"></result>
+        <result column="userName" property="userName"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="auUserName" property="addUser"></result>
+        <result column="auName" property="addName"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="uuUserName" property="updateUser"></result>
+        <result column="uuName" property="updateName"></result>
+        <result column="userPhone" property="userPhone"></result>
+        <result column="flag" property="flag"></result>
+        <association property="supplier" javaType="com.ybau.transaction.domain.Supplier">
+            <id column="supplierId" property="supplierId"></id>
+            <result column="supplierName" property="supplierName"></result>
+        </association>
+    </resultMap>
+
+    <!-- 新增用户-->
+    <insert id="saveUser">
+        insert into user (id, username, password, email, flag, uId, addTime, addUser, organizationId, name, userPhone,
+                          departmentId, groupingId, sign)
+        VALUES (#{map.id}, #{map.username}, #{map.password}, #{map.email}, #{map.flag}, #{map.uId}, #{map.addTime},
+                #{map.addUser}, #{map.organizationId}, #{map.name}, #{map.userPhone}, #{map.departmentId},
+                #{map.groupingId}, #{map.sign})
+
+    </insert>
+    <!--插入用户审核的订单-->
+    <insert id="saveUserByOrder">
+        insert into user_order (userId, orderId)
+        values (#{id}, #{orderId})
+    </insert>
+
+    <!-- 修改用户-->
+    <update id="updateUser">
+        update user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.username!=null and map.username!=''">username=#{map.username},</if>
+            <if test="map.password!=null and map.password!=''">password=#{map.password},</if>
+            email=#{map.email},
+            <if test="map.flag!=null and map.flag!=''">flag=#{map.flag},userCount= 1,</if>
+            <if test="map.uId!=null and map.uId!=''">uId=#{map.uId},</if>
+            <if test="map.organizationId!=null and map.organizationId!=''">organizationId=#{map.organizationId},</if>
+            <if test="map.name!=null and map.name!=''">name=#{map.name},</if>
+            <if test="map.departmentId!=null and map.departmentId!=''">departmentId=#{map.departmentId},</if>
+            <if test="map.groupingId!=null and map.groupingId!=''">groupingId=#{map.groupingId},</if>
+            userPhone=#{map.userPhone},
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime}
+            </if>
+        </trim>
+        where id=#{map.id}
+    </update>
+
+    <!--更改错误次数 -->
+    <update id="updateByUserCount">
+        update user
+        set userCount = (userCount + 1)
+        where username = #{username}
+
+    </update>
+    <!-- 更新密码错误次数-->
+    <update id="updateByCount">
+        update user
+        set userCount= 0
+        where username = #{username}
+    </update>
+    <!--修改密码-->
+    <update id="updatePwd">
+        update user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.password!=null and map.password!=''">password=#{map.newPwd},</if>
+        </trim>
+        where id=#{map.id}
+    </update>
+
+
+    <update id="updateEmailByPhone">
+        update user set
+            email=#{map.email},
+          userPhone=#{map.userPhone}
+        where id=#{map.id}
+    </update>
+
+
+    <!-- 登陆-->
+    <select id="selectByUserNameAndPassword" resultType="com.ybau.transaction.domain.User">
+        select user.*, oi.organizationName
+        from user
+                 LEFT JOIN organization oi ON user.organizationId = oi.organizationId
+        where username = #{map.username}
+          and password = #{map.password}
+    </select>
+    <!-- 查询该用户名是否存在-->
+    <select id="findByUsername" resultType="java.lang.Integer">
+        select count(username)
+        from user
+        where username = #{userName}
+    </select>
+
+
+    <!-- 根据Id查询用户拥有的权限-->
+    <select id="findByRole" resultType="com.ybau.transaction.domain.Role">
+
+        select *
+        from role
+        WHERE id in (select rid from user_role where uid = #{uId})
+        order by addTime desc
+    </select>
+
+    <!-- 根据Id查询用户没有的权限-->
+    <select id="findOtherRole" resultType="com.ybau.transaction.domain.Role">
+
+        SELECT *
+        FROM role
+        WHERE id NOT IN (SELECT rid FROM user_role WHERE uid = #{uId})
+        order by addTime desc
+    </select>
+    <!-- 根据用户名查询该账户错误次数-->
+    <select id="findByUserCount" resultType="com.ybau.transaction.domain.User">
+        select userCount
+        from user
+        where username = #{username}
+
+    </select>
+    <!-- 根据公司ID查询是否有下属用户-->
+    <select id="findByOrganizationId" resultType="java.lang.Integer">
+
+        select count(id)
+        from user
+        WHERE organizationId = #{id}
+          and sign = 1
+
+    </select>
+    <!--查询部门下是否存在用户-->
+    <select id="findByDepartmentId" resultType="java.lang.Integer">
+        select count(departmentId)
+        from user
+        where departmentId = #{departmentId}
+    </select>
+    <!--查询分组是否存在用户-->
+    <select id="findByGroupingId" resultType="java.lang.Integer">
+        select count(groupingId)
+        from user
+        where groupingId = #{groupingId}
+
+    </select>
+    <!--根据公司ID查询用户列表-->
+    <select id="findByOId" resultMap="organizationMap">
+        select organizationId, organizationName
+        from organization
+    </select>
+    <!--根据公司ID查询所有用户-->
+    <select id="findOId" resultType="com.ybau.transaction.domain.User">
+        select id, username, name
+        from user
+        where organizationId = #{organizationId}
+          and flag = 0
+          and sign = 1
+    </select>
+    <!--根据订单Id查询该订单是否已经被审核过-->
+    <select id="findUserByOrd" resultType="java.lang.Integer">
+        select count(uoId)
+        from user_order
+        where userId = #{id}
+          and orderId = #{orderId}
+
+    </select>
+
+    <!--查询拥有定制订单新增操作记录的用户-->
+    <select id="findSaveCoLog" resultType="java.util.Map">
+        select id, username, name
+        from user
+        where id in (select uId
+                     from user_role
+                     where rId in (select rId
+                                   from role_permission
+                                   where pid in (select id from permission where url = #{url})))
+        order by username
+    </select>
+
+    <!--根据定制订单ID查询跟进人信息-->
+    <select id="findByCoId" resultType="com.ybau.transaction.domain.User">
+        select id, username, name, userPhone
+        from user
+        where id in (select userId from user_customizedorder where coId = #{coId})
+        order by username
+    </select>
+
+    <!--分页查询供应商用户信息-->
+    <select id="supplierByUser" resultMap="userMap">
+        select
+        u.id,u.userPhone,u.username,u.email,u.flag,u.addTime,u.uId,u.updateTime,u.organizationId,u.name,au.username
+        auUserName,au.name auName,uu.username uuUserName,uu.name uuName,
+        sp.supplierId,sp.supplierName
+        from user u
+        left join user au on u.addUser=au.id
+        left join user uu on u.updateUser=uu.id
+        left join supplier sp on sp.supplierId=u.organizationId
+        where 1=1 and u.sign = 2
+        <if test='map.username!=null and map.username!=""'>and u.username like CONCAT('%',#{map.username},'%')</if>
+        <if test='map.name!=null and map.name!=""'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.userPhone!=null and map.userPhone!=""'>and u.userPhone like CONCAT('%',#{map.userPhone},'%')</if>
+        <if test='map.supplierName!=null and map.supplierName!= ""'>and sp.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        order by addTime desc
+
+    </select>
+
+    <!--查询供应商是否存在下属用户-->
+    <select id="findBySupplierId" resultType="java.lang.Integer">
+        select count(id)
+        from user
+        where organizationId = #{supplierId}
+          and sign = 2
+    </select>
+    <!--查询拥有向供应商下单权限的用户-->
+    <select id="supplierUser" resultType="java.util.Map">
+        select user.id,user.username,user.name from permission
+        left join role_permission rp on rp.pid=permission.id
+        left join user_role ur on ur.rId=rp.rId
+        left join user on user.id=ur.uId
+        where permission.url=#{url} and organizationId=#{organizationId} and sign=#{sign}
+        <if test="map.name!=null and map.name!=''">and user.name like CONCAT('%',#{map.name},'%')</if>
+        order by username
+    </select>
+
+    <!--根据用户名查询用户属于供应商||公司-->
+    <select id="findUserName" resultType="java.lang.String">
+        select sign
+        from user
+        where username = #{username}
+    </select>
+    <!--供应商用户登录-->
+    <select id="findSupplierUser" resultType="com.ybau.transaction.domain.User">
+        select user.*, supplier.supplierName organizationName
+        from user
+                 LEFT JOIN supplier ON user.organizationId = supplier.supplierId
+        where username = #{map.username}
+          and password = #{map.password}
+    </select>
+    <select id="findUserByName" resultType="java.lang.Integer">
+        select organizationId
+        from user
+        where id = #{aUser}
+
+    </select>
+
+
+</mapper>

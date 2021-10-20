@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.AuditLogMapper">
+
+    <resultMap id="auditLogMap" type="com.ybau.transaction.domain.AuditLog">
+        <id column="auditLogId" property="auditLogId"></id>
+        <result column="auditCondition" property="auditCondition"></result>
+        <result column="auditFlowName" property="auditFlowName"></result>
+        <result column="auditLogOrder" property="auditLogOrder"></result>
+        <result column="auditLogTime" property="auditLogTime"></result>
+        <result column="auditOpinion" property="auditOpinion"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"/>
+            <result column="username" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+    </resultMap>
+
+<!--插入审核记录-->
+    <insert id="saveAuditLog">
+        insert into auditlog(auditLogOrder,auditFlowName,auditCondition,auditOpinion,auditUser,auditLogTime)
+        values
+        (#{map.auditLogOrder},#{map.auditFlowName},#{map.auditCondition},#{map.auditOpinion},#{map.auditUser},#{map.auditLogTime})
+
+    </insert>
+
+    <!--查询审核记录-->
+    <select id="findAuditLog" resultMap="auditLogMap">
+        select al.*,user.id,user.username,user.name from auditlog al
+        left join user on user.id=al.auditUser
+        where 1=1 and  auditLogOrder=#{map.orderId}
+        <if test="map.logUser!=null and map.logUser!=''">and user.name like CONCAT('%',#{map.logUser},'%')</if>
+        <if test="map.startTime!=null and map.startTime!=''">AND al.auditLogTime &gt;= #{map.startTime}</if>
+        <if test="map.endTime!=null and map.endTime!=''">AND al.auditLogTime &lt;= #{map.endTime}</if>
+        order by auditLogTime desc
+    </select>
+</mapper>

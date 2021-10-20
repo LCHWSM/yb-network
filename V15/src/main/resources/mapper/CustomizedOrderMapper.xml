@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.CustomizedOrderMapper">
+
+    <resultMap id="customizedOrderMap" type="com.ybau.transaction.domain.CustomizedOrder">
+        <id column="coId" property="coId"></id>
+        <result column="coAddTime" property="coAddTime"></result>
+        <result column="coDemand" property="coDemand"></result>
+        <result column="coEmail" property="coEmail"></result>
+        <result column="coFlag" property="coFlag"></result>
+        <result column="coName" property="coName"></result>
+        <result column="coPhone" property="coPhone"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"></id>
+            <result column="userName" property="userName"></result>
+            <result column="name" property="name"></result>
+        </association>
+        <association property="users" column="coId"
+                     javaType="java.util.List"
+                     select="com.ybau.transaction.mapper.UserMapper.findByCoId"/>
+        <association property="coRemarks" column="coId"
+                     javaType="java.util.List"
+                     select="com.ybau.transaction.mapper.LogMapper.findByCoId"/>
+
+    </resultMap>
+
+    <!--插入用户定制需求-->
+    <insert id="saveCo">
+     insert into customizedorder (coName,coPhone,coEmail,coDemand,coAddTime)
+     values
+     (#{map.coName},#{map.coPhone},#{map.coEmail},#{map.coDemand},#{map.coAddTime});
+    </insert>
+    <!--插入跟进人中间表信息-->
+    <insert id="userCustomizedorder">
+        insert into user_customizedorder (userId,coId) values (#{user},#{coId});
+    </insert>
+
+    <!--修改订单信息-->
+    <update id="updateFlag">
+        update customizedorder
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.coFlag!=null and map.coFlag!=''">coFlag=#{map.coFlag},</if>
+        </trim>
+        where coId=#{map.coId}
+    </update>
+
+    <!--修改订单信息-->
+    <update id="updateOrder">
+        update customizedorder
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.coName!=null and map.coName!=''">coName=#{map.coName},</if>
+            <if test="map.coPhone!=null and map.coPhone!=''">coPhone=#{map.coPhone},</if>
+            <if test="map.coEmail!=null and map.coEmail!=''">coEmail=#{map.coEmail},</if>
+            <if test="map.coDemand!=null and map.coDemand!=''">coDemand=#{map.coDemand},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+        </trim>
+        where coId=#{map.coId}
+    </update>
+
+    <!--根据定制订单ID删除所有跟进人信息-->
+    <delete id="deleteByCoId">
+        delete from user_customizedorder where coId = #{coId}
+    </delete>
+
+    <!--查询所有用户定制需求-->
+    <select id="findAll" resultMap="customizedOrderMap">
+        select co.*,user.id,user.username,user.name from customizedorder co
+        left join user on user.id=co.updateUser
+        where 1=1
+        <if test="map.coName!=null and map.coName!=''">and co.coName like CONCAT('%',#{map.coName},'%')</if>
+        <if test="map.coPhone!=null and map.coPhone!=''">and co.coPhone like CONCAT('%',#{map.coPhone},'%')</if>
+        <if test="map.coEmail!=null and map.coEmail!=''">and co.coEmail like CONCAT('%',#{map.coEmail},'%')</if>
+        <if test="map.coFlag!=null and map.coFlag!=''">and co.coFlag = #{map.coFlag}</if>
+        <if test='map.startTime!=null'>AND co.coAddTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND co.coAddTime &lt;= #{map.endTime}</if>
+        order by coAddTime desc
+    </select>
+
+    <!--根据用户手机号查询用户定制需求（客户端)-->
+    <select id="findClient" resultMap="customizedOrderMap">
+    select co.*,user.id,user.username,user.name  from customizedorder co
+     left join user on user.id=co.updateUser
+     where coPhone=#{map.coPhone}
+     order by coAddTime desc
+
+    </select>
+
+    <!--根据定制订单ID查询订单信息-->
+    <select id="findById" resultMap="customizedOrderMap">
+        select * from customizedorder where coId=#{coId}
+    </select>
+    <!--根据订单ID 和用户ID查询是否是此订单的跟进人-->
+    <select id="findByUser" resultType="java.lang.Integer">
+    select count(uoId) from user_customizedorder where coId=#{coId} and userId=#{id};
+    </select>
+    
+    <!--根据用户ID查询用户跟进的订单-->
+    <select id="findByUserId" resultMap="customizedOrderMap">
+        select co.*,user.id,user.username,user.name from user_customizedorder uc
+        left join customizedorder co on co.coId=uc.coId
+        left join user on user.id=co.updateUser
+        where uc.userId=#{map.userId}
+        <if test="map.coName!=null and map.coName!=''">and co.coName like CONCAT('%',#{map.coName},'%')</if>
+        <if test="map.coPhone!=null and map.coPhone!=''">and co.coPhone like CONCAT('%',#{map.coPhone},'%')</if>
+        <if test="map.coEmail!=null and map.coEmail!=''">and co.coEmail like CONCAT('%',#{map.coEmail},'%')</if>
+        <if test="map.coFlag!=null and map.coFlag!=''">and co.coFlag = #{map.coFlag}</if>
+        <if test='map.startTime!=null'>AND co.coAddTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND co.coAddTime &lt;= #{map.endTime}</if>
+        order by coAddTime desc
+    </select>
+</mapper>

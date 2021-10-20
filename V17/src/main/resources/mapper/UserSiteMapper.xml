@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.UserSiteMapper">
+
+    <!--新增用户收货地址-->
+    <insert id="saveUserSite">
+        insert into usersite(receiverName, receiverMobile, receiverProvince, receiverCity, receiverDistrict,
+                             receiverStreet, receiverAddress, site, userId, updateTime)
+        values (#{map.receiverName}, #{map.receiverMobile}, #{map.receiverProvince}, #{map.receiverCity},
+                #{map.receiverDistrict}, #{map.receiverStreet}, #{map.receiverAddress}, #{map.site}, #{map.userId},
+                #{map.updateTime})
+    </insert>
+    <insert id="saveSite">
+        insert into usersite(receiverName, receiverMobile, receiverProvince, receiverCity, receiverDistrict,
+                             receiverStreet, receiverAddress, site, userId)
+        values (#{receiverName}, #{receiverMobile}, #{receiverProvince}, #{receiverCity}, #{receiverDistrict},
+                #{receiverStreet}, #{receiverAddress}, #{site}, #{addUser})
+    </insert>
+    <!--修改用户地址-->
+    <update id="updateUserSite">
+        update usersite
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.receiverName!=null and map.receiverName!=''">receiverName=#{map.receiverName},</if>
+            receiverMobile=#{map.receiverMobile},
+            receiverProvince=#{map.receiverProvince},
+            receiverCity=#{map.receiverCity},
+            receiverDistrict=#{map.receiverDistrict},
+            receiverStreet=#{map.receiverStreet},
+            updateTime=#{map.updateTime},
+            receiverAddress=#{map.receiverAddress},
+            site=#{map.site},
+        </trim>
+
+        where userSiteId=#{map.userSiteId}
+    </update>
+
+    <!--根据ID删除地址-->
+    <delete id="deleteUserSite">
+        delete
+        from usersite
+        where userSiteId = #{userSiteId}
+    </delete>
+    <!--查询用户地址列表（分页，筛选）-->
+    <select id="findUserSite" resultType="com.ybau.transaction.domain.UserSite">
+        select * from usersite where 1=1
+        <if test="map.receiverName!=null and map.receiverName!=''">and receiverName like
+            CONCAT('%',#{map.receiverName},'%')
+        </if>
+        <if test="map.receiverMobile!=null and map.receiverMobile!=''">and receiverMobile like
+            CONCAT('%',#{map.receiverMobile},'%')
+        </if>
+        <if test="map.site!=null and map.site!=''">and site like CONCAT('%',#{map.site},'%')</if>
+        and userId=#{map.userId}
+        order by updateTime desc
+    </select>
+
+    <!--查询用户地址列表（分页，筛选）-->
+    <select id="findByName" resultType="com.ybau.transaction.domain.UserSite">
+        select * from usersite where 1=1
+        <if test="receiverName!=null and receiverName!=''">and receiverName like
+            CONCAT('%',#{receiverName},'%')
+        </if>
+        and userId=#{id}
+        order by updateTime desc
+    </select>
+    <!--查询收货地址是否重复-->
+    <select id="findByCount" resultType="java.lang.Integer">
+        select count(userSiteId)
+        from usersite
+        where receiverName = #{map.receiverName}
+          and receiverMobile = #{map.receiverMobile}
+          and site = #{map.site}
+          and userId = #{map.userId}
+    </select>
+    <!--查询地址是否重复-->
+    <select id="findCount" resultType="java.lang.Integer">
+        select count(userSiteId)
+        from usersite
+        where receiverName = #{receiverName}
+          and receiverMobile = #{receiverMobile}
+          and site = #{site}
+          and userId = #{addUser}
+    </select>
+</mapper>

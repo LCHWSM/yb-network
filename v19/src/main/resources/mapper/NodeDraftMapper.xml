@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.NodeDraftMapper">
+
+    <resultMap id="nodeDraftMap" type="com.ybau.transaction.domain.NodeDraft">
+        <id column="nodeDraftId" property="nodeDraftId"/>
+        <result column="nodeDraftName" property="nodeDraftName"></result>
+        <result column="nodeDraftGrade" property="nodeDraftGrade"></result>
+        <result column="nodeDraftWay" property="nodeDraftWay"></result>
+        <result column="nodeDraftCourse" property="nodeDraftCourse"></result>
+        <result column="nodeDraftUser" property="nodeDraftUser"></result>
+        <result column="organizationId" property="organizationId"></result>
+        <result column="addTime" property="addTime"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="nodeDraftList" column="nodeDraftId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.NodeDraftMapper.findByGrouping"/>
+    </resultMap>
+
+
+    <!--新增公司节点信息-->
+    <insert id="saveAuditFlow" useGeneratedKeys="true" keyProperty="nodeDraftId">
+        insert into
+        nodedraft (nodedraftName,nodedraftGrade,nodedraftWay,nodedraftCourse,nodedraftUser,organizationId,addUser,addTime)
+        values
+        (#{map.nodeDraftName},#{map.nodeDraftGrade},#{map.nodeDraftWay},#{map.nodeDraftCourse},#{map.nodeDraftUser},#{map.organizationId},#{map.addUser},#{map.addTime})
+    </insert>
+    <!--为分支判断时存入可审批的组-->
+    <insert id="saveAuditFlowByGrouping">
+      insert into nodedraft_grouping (nodedraftId,groupingId,nodedraftUser)values (#{nodeDraftId},#{groupingId},#{nodeDraftUser})
+    </insert>
+
+
+    <!--修改审核节点草稿-->
+    <update id="updateNodeDraft">
+        update nodedraft
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.nodeDraftName!=null and map.nodeDraftName!=''">nodeDraftName=#{map.nodeDraftName},</if>
+            <if test="map.nodeDraftWay!=null and map.nodeDraftWay!=''">nodeDraftWay=#{map.nodeDraftWay},</if>
+            <if test="map.nodeDraftUser!=null and map.nodeDraftUser!=''">nodeDraftUser=#{map.nodeDraftUser},</if>
+            <if test="map.nodeDraftCourse!=null and map.nodeDraftCourse!=''">nodeDraftCourse=#{map.nodeDraftCourse},</if>
+        </trim>
+        where nodeDraftId=#{map.nodeDraftId}
+    </update>
+
+    <!--删除分支判断的相关信息-->
+    <delete id="deleteAuditFlowByGrouping">
+         delete from nodedraft_grouping where nodeDraftId=#{nodeDraftId}
+
+    </delete>
+    <!--删除节点相关信息-->
+    <delete id="deleteByNodeDraftId">
+        delete from nodedraft where nodeDraftId=#{nodeDraftId}
+
+    </delete>
+    <!--根据公司ID删除所有公司节点-->
+    <delete id="deleteByOId">
+        delete from nodedraft where organizationId=#{organizationId}
+    </delete>
+
+
+    <!--根据公司ID查询公司节点数量-->
+    <select id="findByOId" resultType="com.ybau.transaction.domain.NodeDraft">
+         select * from nodedraft where organizationId=#{organizationId}  order by nodeDraftGrade
+    </select>
+    <!--根据公司ID查询公司审核节点信息-->
+    <select id="findAll" resultMap="nodeDraftMap">
+        select nd.*,au.id auId,au.username auUserName,au.name auName
+        from nodedraft nd
+        left join user au on nd.addUser=au.id
+        where nd.organizationId=#{map.organizationId}
+        order by nodeDraftGrade
+    </select>
+
+    <!--查询分支判断分组 审核人信息-->
+    <select id="findByGrouping" resultType="java.util.Map">
+   select ng.nodeDraftId,gp.*,u.id,u.username,u.name from nodedraft_grouping ng
+   left join user u on u.id=ng.nodeDraftUser
+   left join `grouping` gp on gp.groupingId=ng.groupingId
+   where nodeDraftId=#{nodeDraftId}
+    </select>
+
+    <!--根据节点ID查询节点相关信息  -->
+    <select id="findById" resultMap="nodeDraftMap">
+   select nd.* from nodedraft nd
+        where nodeDraftId=#{nodeDraftId}
+    </select>
+    <!--根据公司ID查询节点ID-->
+    <select id="findByNodeDraftId" resultType="java.lang.Integer">
+        select nodeDraftId from nodedraft where organizationId=#{organizationId}
+
+    </select>
+
+
+</mapper>

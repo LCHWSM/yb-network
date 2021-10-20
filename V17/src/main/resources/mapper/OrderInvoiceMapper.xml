@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.OrderInvoiceMapper">
+
+    <resultMap id="OrderInvoiceMap" type="com.ybau.transaction.domain.OrderInvoice">
+        <id column="orderInvoiceId" property="orderInvoiceId"/>
+        <result column="orderInvoiceName" property="orderInvoiceName"></result>
+        <result column="orderInvoiceNumber" property="orderInvoiceNumber"></result>
+        <result column="orderInvoiceSite" property="orderInvoiceSite"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="remarks" property="remarks"></result>
+        <result column="addUser" property="userId"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+    <!--插入发票附件（用户）-->
+    <insert id="saveInvoiceUser" useGeneratedKeys="true" keyProperty="orderInvoiceId" keyColumn="orderInvoiceId">
+        insert into orderinvoice (orderInvoiceName, orderInvoiceNumber, addUser, addTime,
+                                  orderInvoiceSite, remarks)
+        values (#{map.orderInvoiceName}, #{map.orderInvoiceNumber}, #{map.addUser}, #{map.addTime},
+                #{map.orderInvoiceSite}, #{map.remarks})
+    </insert>
+    <!--修改发票操作-->
+    <update id="updateInvoiceUser">
+        update orderinvoice
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.orderInvoiceName!=null and map.orderInvoiceName!=''">
+                orderInvoiceName=#{map.orderInvoiceName},
+            </if>
+            <if test="map.orderInvoiceNumber!=null and map.orderInvoiceNumber!=''">
+                orderInvoiceNumber=#{map.orderInvoiceNumber},
+            </if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+            <if test="map.orderInvoiceSite!=null and map.orderInvoiceSite!=''">
+                orderInvoiceSite=#{map.orderInvoiceSite},
+            </if>
+            <if test="map.remarks!=null">remarks=#{map.remarks},</if>
+        </trim>
+        where orderInvoiceId=#{map.orderInvoiceId}
+    </update>
+    <!--删除发票附件-->
+    <delete id="deleteInvoiceId">
+        delete from orderinvoice
+         where orderInvoiceId=#{invoiceId}
+
+    </delete>
+
+    <!--根据订单ID查询发票附件信息-->
+    <select id="findOrderId" resultMap="OrderInvoiceMap">
+        select oi.*,
+               au.id       auId,
+               au.username auUserName,
+               au.name     auName,
+               uu.id       uuId,
+               uu.username uuUserName,
+               uu.name     uuName
+        from orders
+                 left join orderinvoice oi on orders.orderInvoiceId = oi.orderInvoiceId
+                 left join user au on au.id = oi.addUser
+                 left join user uu on uu.id = oi.updateUser
+        where orders.orderId = #{orderId}
+
+    </select>
+    <!--根据发票ID查询发票信息-->
+    <select id="findById" resultMap="OrderInvoiceMap">
+        select *
+        from orderinvoice
+        where orderInvoiceId = #{orderInvoiceId}
+    </select>
+</mapper>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.OrganizationMapper">
+
+
+    <resultMap id="organizationMap" type="com.ybau.transaction.domain.Organization">
+        <id column="organizationId" property="organizationId"/>
+        <result column="organizationName" property="organizationName"></result>
+        <result column="organizationLimit" property="organizationLimit"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="useBalance" property="useBalance"></result>
+        <result column="availableBalance" property="availableBalance"></result>
+        <result column="processGroupId" property="processGroupId"></result>
+        <result column="settingTime" property="settingTime"></result>
+        <result column="way" property="way"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+        <collection property="supplier" ofType="com.ybau.transaction.domain.Supplier">
+            <id column="supplierId" property="supplierId"/>
+            <result column="supplierName" property="supplierName"/>
+        </collection>
+    </resultMap>
+
+    <!--  新增公司-->
+    <insert id="saveOrganization">
+        insert into organization (organizationName, organizationLimit, addTime, addUser, availableBalance, settingTime,
+                                  way)
+        values (#{map.organizationName}, #{map.organizationLimit}, #{map.addTime}, #{map.addUser},
+                #{map.organizationLimit}, #{map.settingTime}, #{map.way})
+
+    </insert>
+
+    <!--插入公司可下单的供应商ID-->
+    <insert id="saveSupplier">
+        insert into organization_supplier (organizationId, supplierId)
+        values (#{organizationId}, #{supplierId});
+    </insert>
+
+    <!-- 修改公司-->
+    <update id="updateOrganization">
+        update organization
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null and name!=''">organizationName=#{name},</if>
+            <if test="settingTime!=null and settingTime!=''">settingTime=#{settingTime},</if>
+            <if test="username!=null and username!=''">updateUser=#{username},updateTime=#{updateTime},</if>
+            <if test="way!=null and way!=''">way=#{way},</if>
+        </trim>
+        where organizationId=#{id}
+    </update>
+
+    <!-- 增加额度-->
+    <update id="updateAddLimit">
+
+        update organization
+        set organizationLimit=organizationLimit + #{map.now},
+            availableBalance=availableBalance + #{map.now}
+        where organizationId = #{map.id}
+
+    </update>
+    <!-- 减少额度-->
+    <update id="updateSubLimit">
+
+        update organization
+        set organizationLimit=organizationLimit - #{map.now},
+            availableBalance=availableBalance - #{map.now}
+        where organizationId = #{map.id}
+    </update>
+    <!-- 核销额度-->
+    <update id="updateUsable">
+
+        update organization
+        set useBalance=useBalance - #{map.now},
+            availableBalance=availableBalance + #{map.now}
+        where organizationId = #{map.id}
+          and useBalance >= #{map.now}
+
+    </update>
+
+    <!-- 下单减少可用额度增加已用额度-->
+    <update id="subLimit">
+
+        update organization
+        set useBalance=useBalance + #{map.now},
+            availableBalance=availableBalance - #{map.now}
+        where organizationId = #{map.organizationId}
+          and availableBalance >= #{map.now}
+    </update>
+    <!--校验已使用额度-->
+    <update id="verifyLimit">
+
+        update organization
+        set useBalance=useBalance + #{sub},
+            availableBalance=organizationLimit - useBalance
+        where organizationId = #{organizationId}
+    </update>
+
+    <!--根据ID更新订单修改金额后的额度信息-->
+    <update id="updateLimit">
+        update organization
+        set useBalance=useBalance - #{sub},
+            availableBalance=availableBalance + #{sub}
+        where organizationId = #{addCompany}
+    </update>
+
+    <!--根据ID删除公司-->
+    <delete id="deleteById">
+
+        delete
+        from organization
+        where organizationId = #{id}
+    </delete>
+    <!--删除公司与供应商的关联信息-->
+    <delete id="deleteSupplier">
+        delete
+        from organization_supplier
+        where organizationId = #{organizationId}
+    </delete>
+    <!-- 查询公司信息 -->
+    <select id="findAll" resultMap="organizationMap">
+        SELECT o.*,au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name uuName,su.supplierId,su.supplierName
+        FROM organization o
+        left join user au on o.addUser=au.id
+        left join user uu on o.updateUser=uu.id
+        left join organization_supplier os on os.organizationId=o.organizationId
+        left join supplier su on su.supplierId=os.supplierId
+        where 1=1
+        <if test="map.organizationName!=null and map.organizationName!=''">and organizationName like
+            CONCAT('%',#{map.organizationName},'%')
+        </if>
+        ORDER BY addTime DESC
+    </select>
+    <!-- 根据用户ID查询公司信息-->
+    <select id="findByUId" resultType="com.ybau.transaction.domain.Organization">
+        SELECT *
+        FROM organization
+                 LEFT JOIN user ON organization.organizationId = user.organizationId
+        WHERE id = #{id}
+    </select>
+    <!--  查询公司ID名字-->
+    <select id="findOrganization" resultType="com.ybau.transaction.domain.Organization">
+        select organizationId, organizationName, processGroupId
+        from organization
+
+    </select>
+
+    <!--根据ID查询公司信息 -->
+    <select id="findByOId" resultType="com.ybau.transaction.domain.Organization">
+        select organizationId, organizationName, useBalance, processGroupId
+        from organization
+        where organizationId = #{id}
+    </select>
+    <!--根据公司名字查询公司信息 -->
+    <select id="findByName" resultType="java.lang.Integer">
+
+        select count(organizationId)
+        from organization
+        where organizationName = #{organizationName}
+    </select>
+    <!-- 根据公司名字查询公司信息-->
+    <select id="findByOrgName" resultType="com.ybau.transaction.domain.Organization">
+        select *
+        from organization
+        where organizationName = #{organizationName}
+
+    </select>
+    <select id="findAvailableBalance" resultType="java.lang.String">
+        select availableBalance
+        from organization
+        where organizationId = #{organizationId}
+
+    </select>
+
+
+    <select id="findByProcessGroupId" resultType="com.ybau.transaction.domain.Organization">
+        select processGroupId
+        from organization
+        where processGroupId = #{processGroupId}
+        limit 1
+    </select>
+    <!--查询公司额度 -->
+    <select id="findLimit" resultType="com.ybau.transaction.domain.Organization">
+        select * from organization where 1=1
+        <if test="organizationName!=null and organizationName!=''">and organizationName like
+            CONCAT('%',#{organizationName},'%')
+        </if>
+        ORDER BY addTime DESC
+    </select>
+    <!--查询所有公司Id-->
+    <select id="findById" resultType="java.lang.String">
+        select organizationId from organization
+
+    </select>
+
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.TemplateMapper">
+
+    <!--插入模板地址名称-->
+    <insert id="saveTemplate">
+        insert into template (templateName, templateUrl)
+        values (#{map.templateName}, #{map.url})
+    </insert>
+
+    <!--删除原有模板-->
+    <delete id="deleteTemplate">
+        delete
+        from template
+    </delete>
+    <!--查询所有模板-->
+    <select id="findAll" resultType="com.ybau.transaction.domain.Template">
+        select *
+        from template
+    </select>
+</mapper>

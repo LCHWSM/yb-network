@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.ProcessGroupMapper">
+
+    <resultMap id="processGroupMap" type="com.ybau.transaction.domain.ProcessGroup">
+        <id column="processGroupId" property="processGroupId"></id>
+        <result column="processGroupName" property="processGroupName"></result>
+        <result column="processGroupTime" property="processGroupTime"></result>
+        <result column="organizationId" property="organizationId"></result>
+        <association property="processGroupUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uid" property="id"/>
+            <result column="username" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="auditFlows" column="processGroupId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.AuditFlowMapper.findByProcessGroupId"/>
+        <association property="organization" column="processGroupId"
+                     javaType="com.ybau.transaction.domain.Organization" select="com.ybau.transaction.mapper.OrganizationMapper.findByProcessGroupId"/>
+    </resultMap>
+
+
+    <!--插入分组信息-->
+    <insert id="saveAuditFlow" >
+     insert into processgroup (processGroupId,processGroupName,processGroupUser,processGroupTime,organizationId)
+     values
+     (#{map.processGroupId},#{map.processGroupName},#{map.processGroupUser},#{map.processGroupTime},#{map.organizationId})
+    </insert>
+    <!--切换公司目前所使用流程组-->
+    <update id="saveOrganization">
+        update organization set processGroupId=#{processGroupId} where organizationId=#{organizationId}
+    </update>
+    <!--根据流程组ID 修改流程组名字-->
+    <update id="updateName">
+        update processgroup
+        <trim prefix="set" suffixOverrides=",">
+            <if test="processGroupName!=null and processGroupName!=''">processGroupName=#{processGroupName},</if>
+        </trim>
+        where processGroupId=#{processGroupId}
+    </update>
+
+
+    <!--根据公司ID查询所有流程组-->
+    <select id="findAll" resultMap="processGroupMap">
+        select pg.processGroupId,pg.processGroupName,pg.processGroupTime,pg.organizationId,u.id uid,u.username username,u.name name
+        from processgroup pg
+        left join user u on u.id=pg.processGroupUser
+        where pg.organizationId=#{map.organizationId}
+        order by processGroupTime desc
+    </select>
+    <!--查询公司是否已经创建流程-->
+    <select id="findByOId" resultType="com.ybau.transaction.domain.ProcessGroup">
+        select processGroupId from processgroup where organizationId=#{organizationId} and processGroupId=#{processGroupId}
+    </select>
+</mapper>

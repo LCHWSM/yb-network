@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.InvoiceMapper">
+
+    <!--插入发票信息-->
+    <insert id="saveInvoice">
+   INSERT INTO invoice (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,flag,email,invoiceType,orderId,ticketSite)
+       VALUES
+       (#{invoice.unitName},#{invoice.invoiceNumber},#{invoice.unitSite},#{invoice.unitPhone},#{invoice.bankDeposit},#{invoice.bankAccount},#{invoice.flag},#{invoice.email},#{invoice.invoiceType},#{orderId},#{invoice.ticketSite});
+    </insert>
+
+    <!--存入发票信息记录-->
+     <insert id="saveInvoiceRecord">
+        insert into `invoicerecord` (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,email,userId,ticketSite,flag,invoiceType)
+        values
+        (#{invoice.unitName},#{invoice.invoiceNumber},#{invoice.unitSite},#{invoice.unitPhone},#{invoice.bankDeposit},#{invoice.bankAccount},#{invoice.email},#{id},#{invoice.ticketSite},#{invoice.flag},#{invoice.invoiceType})
+    </insert>
+    <!--Map参数新增发票信息-->
+    <insert id="saveInvoiceMap">
+      INSERT INTO invoice (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,flag,email,invoiceType,orderId,ticketSite)
+       VALUES
+       (#{map.unitName},#{map.invoiceNumber},#{map.unitSite},#{map.unitPhone},#{map.bankDeposit},#{map.bankAccount},#{map.flag},#{map.email},#{map.invoiceType},#{map.orderId},#{map.ticketSite});
+    </insert>
+    <insert id="insertInvoice">
+        INSERT INTO invoice (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,flag,email,invoiceType,orderId,ticketSite)
+        VALUES
+        (#{invoice.unitName},#{invoice.invoiceNumber},#{invoice.unitSite},#{invoice.unitPhone},#{invoice.bankDeposit},#{invoice.bankAccount},#{invoice.flag},#{invoice.email},#{invoice.invoiceType},#{orderId},#{invoice.ticketSite});
+    </insert>
+    <insert id="saveInvoiceByRecord">
+        insert into `invoicerecord` (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,email,userId,ticketSite,flag,invoiceType)
+        values
+        (#{invoice.unitName},#{invoice.invoiceNumber},#{invoice.unitSite},#{invoice.unitPhone},#{invoice.bankDeposit},#{invoice.bankAccount},#{invoice.email},#{id},#{invoice.ticketSite},#{invoice.flag},#{invoice.invoiceType})
+    </insert>
+    <!--map插入发票记录-->
+    <insert id="saveinvoicerecord">
+        insert into `invoicerecord` (unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,email,userId,ticketSite,flag,invoiceType)
+        values
+        (#{map.unitName},#{map.invoiceNumber},#{map.unitSite},#{map.unitPhone},#{map.bankDeposit},#{map.bankAccount},#{map.email},#{id},#{map.ticketSite},#{map.flag},#{map.invoiceType})
+
+    </insert>
+    <!--修改发票记录信息-->
+    <update id="updateInvoice">
+        update invoicerecord set
+        unitName=#{map.unitName},invoiceNumber=#{map.invoiceNumber},unitSite=#{map.unitSite},unitPhone=#{map.unitPhone},bankDeposit=#{map.bankDeposit},bankAccount=#{map.bankAccount},email=#{map.email},ticketSite=#{map.ticketSite},invoiceType=#{map.invoiceType},flag=#{map.flag}
+        where
+        invoicerecordId=#{map.invoicerecordId}
+    </update>
+    <!--订单所关联发票信息修改-->
+    <update id="updateByOrderId">
+        update invoice
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.unitName!=null ">unitName=#{map.unitName},</if>
+            <if test="map.invoiceNumber!=null ">invoiceNumber=#{map.invoiceNumber},</if>
+            <if test="map.unitSite!=null ">unitSite=#{map.unitSite},</if>
+            <if test="map.unitPhone!=null ">unitPhone=#{map.unitPhone},</if>
+            <if test="map.bankDeposit!=null ">bankDeposit=#{map.bankDeposit},</if>
+            <if test="map.bankAccount!=null ">bankAccount=#{map.bankAccount},</if>
+            <if test="map.email!=null ">email=#{map.email},</if>
+            <if test="map.ticketSite!=null ">ticketSite=#{map.ticketSite},</if>
+            <if test="map.flag!=null ">flag=#{map.flag},</if>
+            <if test="map.invoiceType!=null ">invoiceType=#{map.invoiceType},</if>
+        </trim>
+        where orderId=#{map.orderId}
+    </update>
+    <!--根据发票记录ID删除记录-->
+    <delete id="deleteInvoice">
+        delete from invoicerecord where invoicerecordId=#{invoiceRecordId}
+    </delete>
+    <!--根据订单ID删除发票信息-->
+    <delete id="deleteByOrderId">
+        delete from invoice where orderId=#{orderId}
+    </delete>
+    <!--查询已插入发票地址-->
+    <select id="findInvoice" resultType="com.ybau.transaction.domain.Invoice">
+        select invoicerecordId invoiceId,unitName,invoiceNumber,unitSite,unitPhone,bankDeposit,bankAccount,email,ticketSite,invoiceType,flag from invoicerecord where 1=1  and userId=#{userId}
+    </select>
+
+    <!--根据用户ID和要删除记录ID查询是否是登录用户插入的-->
+    <select id="findIdByUserId" resultType="java.lang.Integer">
+        select count(invoicerecordId) from invoicerecord where invoicerecordId=#{invoiceRecordId} and userId=#{id}
+
+    </select>
+    <!--查询发票记录是否已经插入-->
+    <select id="findCount" resultType="java.lang.Integer">
+        select count(invoicerecordId) from invoicerecord where 1=1
+        <if test="invoice.unitName!=null and invoice.unitName!='' ">and unitName=#{invoice.unitName}</if>
+        <if test="invoice.invoiceNumber!=null and invoice.invoiceNumber!='' ">and
+            invoiceNumber=#{invoice.invoiceNumber}
+        </if>
+        <if test="invoice.unitSite!=null and invoice.unitSite!='' ">and unitSite=#{invoice.unitSite}</if>
+        <if test="invoice.bankDeposit!=null and invoice.bankDeposit!='' ">and bankDeposit=#{invoice.bankDeposit}</if>
+        <if test="invoice.bankAccount!=null and invoice.bankAccount!='' ">and bankAccount=#{invoice.bankAccount}</if>
+        <if test="invoice.ticketSite!=null and invoice.ticketSite!='' ">and ticketSite=#{invoice.ticketSite}</if>
+        <if test="invoice.unitPhone!=null and invoice.unitPhone!='' ">and unitPhone=#{invoice.unitPhone}</if>
+        <if test="invoice.email!=null and invoice.email!='' ">and email=#{invoice.email}</if>
+        <if test="invoice.invoiceType!=null and invoice.invoiceType!='' ">and invoiceType=#{invoice.invoiceType}</if>
+        and userId=#{id}
+    </select>
+    <!--根据订单ID查询是否有发票信息-->
+    <select id="findByOrderId" resultType="java.lang.Integer">
+        select count(invoiceId) from invoice  where orderId=#{orderId}
+
+    </select>
+    <!--根据发票名字查询发票信息-->
+    <select id="findByUnitName" resultType="com.ybau.transaction.domain.Invoice">
+        select * from invoicerecord where 1=1
+        <if test="unitName!=null and unitName!=''">and unitName like
+            CONCAT('%',#{unitName},'%')
+        </if>
+        <if test="flag!=null and flag!=''">and flag = #{flag}</if>
+        <if test="userId!=null and userId!=''">and userId = #{userId}</if>
+    </select>
+    <!--根据订单ID查询发票信息-->
+    <select id="findById" resultType="com.ybau.transaction.domain.Invoice">
+        select * from invoice where orderId=#{supplierOrderId}
+    </select>
+    <select id="findByCount" resultType="java.lang.Integer">
+        select count(invoicerecordId) from invoicerecord where 1=1
+        <if test="invoice.unitName!=null and invoice.unitName!='' ">and unitName=#{invoice.unitName}</if>
+        <if test="invoice.invoiceNumber!=null and invoice.invoiceNumber!='' ">and
+            invoiceNumber=#{invoice.invoiceNumber}
+        </if>
+        <if test="invoice.unitSite!=null and invoice.unitSite!='' ">and unitSite=#{invoice.unitSite}</if>
+        <if test="invoice.bankDeposit!=null and invoice.bankDeposit!='' ">and bankDeposit=#{invoice.bankDeposit}</if>
+        <if test="invoice.bankAccount!=null and invoice.bankAccount!='' ">and bankAccount=#{invoice.bankAccount}</if>
+        <if test="invoice.ticketSite!=null and invoice.ticketSite!='' ">and ticketSite=#{invoice.ticketSite}</if>
+        <if test="invoice.unitPhone!=null and invoice.unitPhone!='' ">and unitPhone=#{invoice.unitPhone}</if>
+        <if test="invoice.email!=null and invoice.email!='' ">and email=#{invoice.email}</if>
+        <if test="invoice.invoiceType!=null and invoice.invoiceType!='' ">and invoiceType=#{invoice.invoiceType}</if>
+        and userId=#{id}
+    </select>
+    <!--判断该发票信息是否已存在-->
+    <select id="findCoun" resultType="java.lang.Integer">
+        select count(invoicerecordId) from invoicerecord where 1=1
+        <if test="map.unitName!=null and map.unitName!='' ">and unitName=#{map.unitName}</if>
+        <if test="map.invoiceNumber!=null and map.invoiceNumber!='' ">and
+            invoiceNumber=#{map.invoiceNumber}
+        </if>
+        <if test="map.unitSite!=null and map.unitSite!='' ">and unitSite=#{map.unitSite}</if>
+        <if test="map.bankDeposit!=null and map.bankDeposit!='' ">and bankDeposit=#{map.bankDeposit}</if>
+        <if test="map.bankAccount!=null and map.bankAccount!='' ">and bankAccount=#{map.bankAccount}</if>
+        <if test="map.ticketSite!=null and map.ticketSite!='' ">and ticketSite=#{map.ticketSite}</if>
+        <if test="map.unitPhone!=null and map.unitPhone!='' ">and unitPhone=#{map.unitPhone}</if>
+        <if test="map.email!=null and map.email!='' ">and email=#{map.email}</if>
+        <if test="map.invoiceType!=null and map.invoiceType!='' ">and invoiceType=#{map.invoiceType}</if>
+        and userId=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.SupplierOrderMapper">
+
+    <resultMap id="supplierOrderMap" type="com.ybau.transaction.domain.SupplierOrder">
+        <result column="supplierOrderId" property="supplierOrderId"></result>
+        <result column="productNum" property="productNum"></result>
+        <result column="productName" property="productName"></result>
+        <result column="specification" property="specification"></result>
+        <result column="amount" property="amount"></result>
+        <result column="remarks" property="remarks"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="dispose" property="dispose"></result>
+        <result column="quotation" property="quotation"></result>
+        <result column="flag" property="flag"></result>
+        <result column="settlement" property="settlement"></result>
+        <result column="supplierId" property="supplierId"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="disposeLog" property="disposeLog"></result>
+        <association property="supplier" javaType="com.ybau.transaction.domain.Supplier">
+            <id column="supplierId" property="supplierId"></id>
+            <result column="supplierName" property="supplierName"></result>
+        </association>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"></id>
+            <result column="userName" property="userName"></result>
+            <result column="name" property="name"></result>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"></id>
+            <result column="organizationName" property="organizationName"></result>
+        </association>
+        <association property="invoice" column="supplierOrderId"
+                     javaType="com.ybau.transaction.domain.Invoice"
+                     select="com.ybau.transaction.mapper.InvoiceMapper.findById"/>
+    </resultMap>
+    <resultMap id="supplierUserMap" type="com.ybau.transaction.domain.SupplierOrder">
+        <result column="supplierOrderId" property="supplierOrderId"></result>
+        <result column="productNum" property="productNum"></result>
+        <result column="productName" property="productName"></result>
+        <result column="specification" property="specification"></result>
+        <result column="amount" property="amount"></result>
+        <result column="remarks" property="remarks"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="dispose" property="dispose"></result>
+        <result column="quotation" property="quotation"></result>
+        <result column="flag" property="flag"></result>
+        <result column="settlement" property="settlement"></result>
+        <result column="supplierId" property="supplierId"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="addUser" property="userId"></result>
+        <result column="organizationId" property="organizationId"></result>
+        <result column="disposeLog" property="disposeLog"></result>
+    </resultMap>
+
+    <!--插入供应商订单-->
+    <insert id="saveOrder">
+    insert into supplierorder (supplierOrderId,productNum,productName,specification,amount,remarks,supplierId,addUser,addTime,dispose,quotation,flag,settlement,organizationId)
+    values
+    (#{map.supplierOrderId},#{map.productNum},#{map.productName},#{map.specification},#{map.amount},#{map.remarks},#{map.supplierId},#{map.addUser},#{map.addTime},1,0,1,1,#{map.organizationId});
+    </insert>
+
+    <!--存入订单记录信息-->
+    <insert id="saveSORecord">
+        insert into sorecord (sorecordNum,sorecordName,specification,amount,remarks,userId,supplierId)
+         values
+         (#{map.productNum},#{map.productName},#{map.specification},#{map.amount},#{map.remarks},#{map.addUser},#{map.supplierId});
+    </insert>
+    <!--订单关联合同-->
+    <update id="saveContractId">
+        update supplierorder set supplierContractId=#{supplierContractId} where supplierOrderId=#{orderId}
+
+    </update>
+    <!--修改订单信息-->
+    <update id="updateOrderById">
+        update supplierorder
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.productNum!=null and map.productNum!=''">productNum=#{map.productNum},</if>
+            <if test="map.productName!=null and map.productName!=''">productName=#{map.productName},</if>
+            <if test="map.specification!=null ">specification=#{map.specification},</if>
+            <if test="map.amount!=null and map.amount!=''">amount=#{map.amount},</if>
+            <if test="map.remarks!=null ">remarks=#{map.remarks},</if>
+            <if test="map.addUser!=null and map.addUser!=''">addUser=#{map.addUser},</if>
+        </trim>
+        where supplierOrderId=#{map.supplierOrderId}
+    </update>
+
+    <!--修改报价-->
+    <update id="updateQuotation">
+        update supplierorder set quotation=#{div},settlement=#{settlement} where supplierOrderId=#{supplierOrderId}
+    </update>
+
+
+    <!--修改锁定报价状态-->
+    <update id="lockQuotation">
+   update supplierorder set flag=#{flag} where supplierOrderId=#{supplierOrderId}
+    </update>
+
+    <!--修改供应商意见-->
+    <update id="updateDispose">
+         update supplierorder set dispose=#{dispose},disposeLog=#{disposeLog} where supplierOrderId=#{supplierOrderId}
+    </update>
+
+    <!--根据订单ID修改已结算金额 和结算状态-->
+    <update id="closeSum">
+        update supplierorder set settlementAmount = #{moneyDiv},settlement=#{settlement} where supplierOrderId=#{supplierOrderId};
+    </update>
+
+    <!--订单关联合同-->
+    <update id="updateContractId">
+
+        update supplierorder set supplierContractId=#{supplierContractId} where supplierOrderId=#{supplierOrderId}
+    </update>
+    <update id="deleteContractId">
+        update supplierorder set supplierContractId = 0 where supplierContractId=#{supplierContractId}
+
+    </update>
+
+    <!--修改供应商合同信息 （用户）-->
+    <update id="updateContract">
+        update suppliercontract
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.supplierContractName!=null and map.supplierContractName!=''">
+                supplierContractName=#{map.supplierContractName},
+            </if>
+            <if test="map.supplierContractNumber!=null and map.supplierContractNumber!=''">
+                supplierContractNumber=#{map.supplierContractNumber},
+            </if>
+            <if test="map.supplierContractSite!=null and map.supplierContractSite!=''">
+                supplierContractSite=#{map.supplierContractSite},
+            </if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime},
+            </if>
+            <if test="map.remark!=null and map.remark!=''">
+                remark=#{map.remark},
+            </if>
+            <if test="map.organizationId!=null and map.organizationId!=''">
+                organizationId=#{map.organizationId},
+            </if>
+        </trim>
+        where supplierContractId=#{map.supplierContractId}
+
+    </update>
+
+    <!--解除订单关联-->
+    <update id="deleteOrderId">
+        update supplierorder set supplierContractId=0 where supplierOrderId=#{srOrderId}
+
+    </update>
+    <!--订单关联发票附件-->
+    <update id="updateInvoice">
+        update supplierorder set supplierInvoiceId=#{supplierInvoiceId} where supplierOrderId=#{supplierOrderId}
+
+    </update>
+    <!--解除所有发票与订单关联-->
+    <delete id="deleteInvoice">
+        update supplierorder set supplierInvoiceId=0 where supplierInvoiceId=#{supplierInvoiceId}
+
+    </delete>
+
+
+    <!--查询是否已存在记录-->
+    <select id="findSORecord" resultType="java.lang.Integer">
+        select count(sorecordId) from sorecord where
+        sorecordNum=#{map.productNum} and sorecordName=#{map.productName} and specification=#{map.specification} and amount=#{map.amount} and remarks=#{map.remarks} and userId=#{map.addUser}
+    </select>
+    <!--根据用户ID 查询用户所下供应商订单-->
+    <select id="findUIdOrder" resultMap="supplierOrderMap">
+
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.addUser=#{id}
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        <if test='map.dispose!=null and map.dispose!="" '>and so.dispose =#{map.dispose}</if>
+        <if test='map.flag!=null and map.flag!="" '>and so.flag =#{map.flag}</if>
+        <if test='map.settlement!=null and map.settlement!="" '>and so.settlement =#{map.settlement}</if>
+        order by addTime desc
+    </select>
+
+    <!--根据登录用户的供应商ID查询该供应商的所有订单-->
+    <select id="findBySupplier" resultMap="supplierOrderMap">
+
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.supplierId=#{supplierId}
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        <if test='map.dispose!=null and map.dispose!="" '>and so.dispose =#{map.dispose}</if>
+        <if test='map.flag!=null and map.flag!="" '>and so.flag =#{map.flag}</if>
+        <if test='map.settlement!=null and map.settlement!="" '>and so.settlement =#{map.settlement}</if>
+        order by addTime desc
+    </select>
+    <!--根据订单ID查询订单相关信息-->
+    <select id="findById" resultMap="supplierUserMap">
+        select * from supplierorder where supplierOrderId=#{supplierOrderId}
+    </select>
+    <!--查询公司内供应商订单-->
+    <select id="findByOrganId" resultMap="supplierOrderMap">
+
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.organizationId=#{map.organizationId}
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        <if test='map.dispose!=null and map.dispose!="" '>and so.dispose =#{map.dispose}</if>
+        <if test='map.flag!=null and map.flag!="" '>and so.flag =#{map.flag}</if>
+        <if test='map.settlement!=null and map.settlement!="" '>and so.settlement =#{map.settlement}</if>
+        order by addTime desc
+    </select>
+    <!--查询所有供应商订单-->
+    <select id="findAll" resultMap="supplierOrderMap">
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where 1=1
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        <if test='map.dispose!=null and map.dispose!="" '>and so.dispose =#{map.dispose}</if>
+        <if test='map.flag!=null and map.flag!="" '>and so.flag =#{map.flag}</if>
+        <if test='map.settlement!=null and map.settlement!="" '>and so.settlement =#{map.settlement}</if>
+        order by addTime desc
+    </select>
+
+    <!--查询供应商订单未关联合同订单  （用户）-->
+    <select id="findSROrder" resultMap="supplierOrderMap">
+
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.supplierContractId=0
+        <if test='id!=null and id!="" '>and so.addUser =#{id}</if>
+        <if test='map.organizationId!=null and map.organizationId!="" '>and so.organizationId =#{map.organizationId}
+        </if>
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        <if test='map.dispose!=null and map.dispose!="" '>and so.dispose =#{map.dispose}</if>
+        <if test='map.flag!=null and map.flag!="" '>and so.flag =#{map.flag}</if>
+        <if test='map.settlement!=null and map.settlement!="" '>and so.settlement =#{map.settlement}</if>
+        order by addTime desc
+    </select>
+
+    <!--根据合同ID查询合同相关联订单-->
+    <select id="findContractId" resultMap="supplierOrderMap">
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.supplierContractId=#{map.supplierContractId}
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        order by addTime desc
+    </select>
+    <!--根据用户ID查询该用户未关联发票附件的订单-->
+    <select id="findNotOrderUser" resultMap="supplierOrderMap">
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where so.supplierInvoiceId = 0
+        <if test='userId!=null and userId!="" '>and so.addUser = #{userId}</if>
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        order by addTime desc
+    </select>
+    <!--根据发票Id查询已关联订单-->
+    <select id="relevanceInvoiceUser" resultMap="supplierOrderMap">
+        select
+        so.*,sr.supplierId,sr.supplierName,user.id,user.username,user.name,organ.organizationId,organ.organizationName
+        from supplierorder so
+        left join supplier sr on sr.supplierId=so.supplierId
+        left join user on user.id=so.addUser
+        left join organization organ on organ.organizationId=so.organizationId
+        where 1=1
+        <if test='map.supplierInvoiceId!=null and map.supplierInvoiceId!="" '>and so.supplierInvoiceId = #{map.supplierInvoiceId}</if>
+        <if test='map.supplierOrderId!=null and map.supplierOrderId!="" '>and so.supplierOrderId like
+            CONCAT('%',#{map.supplierOrderId},'%')
+        </if>
+        <if test='map.productNum!=null and map.productNum!="" '>and so.productNum like
+            CONCAT('%',#{map.productNum},'%')
+        </if>
+        <if test='map.productName!=null and map.productName!="" '>and so.productName like
+            CONCAT('%',#{map.productName},'%')
+        </if>
+        <if test='map.supplierName!=null and map.supplierName!="" '>and sr.supplierName like
+            CONCAT('%',#{map.supplierName},'%')
+        </if>
+        order by addTime desc
+
+    </select>
+</mapper>

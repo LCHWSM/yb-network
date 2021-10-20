@@ -1,0 +1,883 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.OrderMapper">
+
+    <resultMap id="orderAllMap" type="com.ybau.transaction.domain.Order">
+        <id column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"></result>
+        <result column="receiverName" property="receiverName"></result>
+        <result column="receiverMobile" property="receiverMobile"></result>
+        <result column="expressOnly" property="expressOnly"></result>
+        <result column="site" property="site"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="paymentMethod" property="paymentMethod"></result>
+        <result column="sumMoney" property="sumMoney"></result>
+        <result column="returnTime" property="returnTime"></result>
+        <result column="audit" property="audit"></result>
+        <result column="addUser" property="addUser"/>
+        <result column="addCompany" property="addCompany"></result>
+        <result column="auditNode" property="auditFlowGrade"></result>
+        <result column="processGroupId" property="processGroupId"></result>
+        <result column="actualMoney" property="actualMoney"></result>
+        <result column="freight" property="freight"></result>
+        <result column="retreatCargo" property="retreatCargo"></result>
+        <result column="orderRemark" property="orderRemark"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="orderSign" property="orderSign"></result>
+        <result column="serveCost" property="serveCost"></result>
+        <result column="orderInvoiceId" property="orderInvoiceId"></result>
+        <result column="refundAmount" property="refundAmount"></result>
+        <result column="proposer" property="proposer"></result>
+        <result column="dingNumber" property="dingNumber"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"/>
+            <result column="organizationName" property="organizationName"/>
+        </association>
+        <association property="contract" javaType="com.ybau.transaction.domain.Contract">
+            <id column="contractId" property="contractId"/>
+            <result column="contractName" property="contractName"/>
+            <result column="contractNumber" property="contractNumber"/>
+        </association>
+        <association property="express" javaType="com.ybau.transaction.domain.Express">
+            <id column="expressId" property="expressId"/>
+            <result column="expressName" property="expressName"/>
+            <result column="expressNumbers" property="expressNumbers"/>
+            <result column="retreatName" property="retreatName"/>
+            <result column="retreatNumbers" property="retreatNumbers"/>
+            <result column="retreatTime" property="retreatTime"/>
+            <result column="practicalTime" property="practicalTime"/>
+        </association>
+        <association property="invoice" javaType="com.ybau.transaction.domain.Invoice">
+            <id column="invoiceId" property="invoiceId"/>
+            <result column="unitName" property="unitName"/>
+            <result column="invoiceNumber" property="invoiceNumber"/>
+            <result column="unitSite" property="unitSite"/>
+            <result column="unitPhone" property="unitPhone"/>
+            <result column="bankAccount" property="bankAccount"/>
+            <result column="bankDeposit" property="bankDeposit"/>
+            <result column="flag" property="flag"/>
+            <result column="email" property="email"/>
+            <result column="invoiceType" property="invoiceType"/>
+            <result column="ticketSite" property="ticketSite"/>
+        </association>
+
+        <association property="goodsDetail" column="orderId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.GoodsMapper.findByOrdersId"/>
+        <association property="auditFlowList" column="processGroupId"
+                     javaType="java.util.List"
+                     select="com.ybau.transaction.mapper.AuditFlowMapper.findByProcessGroupId"/>
+    </resultMap>
+
+
+    <resultMap id="order" type="com.ybau.transaction.domain.Order">
+        <id column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"></result>
+        <result column="receiverName" property="receiverName"></result>
+        <result column="receiverMobile" property="receiverMobile"></result>
+        <result column="expressOnly" property="expressOnly"></result>
+        <result column="site" property="site"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="paymentMethod" property="paymentMethod"></result>
+        <result column="sumMoney" property="sumMoney"></result>
+        <result column="returnTime" property="returnTime"></result>
+        <result column="audit" property="audit"></result>
+        <result column="addUser" property="addUser"></result>
+        <result column="addCompany" property="addCompany"></result>
+        <result column="auditNode" property="auditFlowGrade"></result>
+        <result column="processGroupId" property="processGroupId"></result>
+        <result column="actualMoney" property="actualMoney"></result>
+        <result column="freight" property="freight"></result>
+        <result column="retreatCargo" property="retreatCargo"></result>
+        <result column="receiverProvince" property="receiverProvince"></result>
+        <result column="receiverCity" property="receiverCity"></result>
+        <result column="receiverDistrict" property="receiverDistrict"></result>
+        <result column="receiverStreet" property="receiverStreet"></result>
+        <result column="receiverAddress" property="receiverAddress"></result>
+        <result column="orderRemark" property="orderRemark"></result>
+        <result column="orderSign" property="orderSign"></result>
+        <result column="serveCost" property="serveCost"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="refundAmount" property="refundAmount"></result>
+        <result column="proposer" property="proposer"></result>
+        <result column="dingNumber" property="dingNumber"></result>
+        <association property="goodsDetail" column="orderId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.GoodsMapper.findByOrdersId"/>
+        <association property="invoice" javaType="com.ybau.transaction.domain.Invoice">
+            <id column="invoiceId" property="invoiceId"/>
+            <result column="unitName" property="unitName"/>
+            <result column="invoiceNumber" property="invoiceNumber"/>
+            <result column="unitSite" property="unitSite"/>
+            <result column="unitPhone" property="unitPhone"/>
+            <result column="bankAccount" property="bankAccount"/>
+            <result column="bankDeposit" property="bankDeposit"/>
+            <result column="flag" property="flag"/>
+            <result column="email" property="email"/>
+            <result column="invoiceType" property="invoiceType"/>
+            <result column="ticketSite" property="ticketSite"/>
+        </association>
+    </resultMap>
+
+    <!--插入订单-->
+    <insert id="saveOrder">
+        INSERT INTO orders(orderId, orderTime, receiverName, receiverMobile,
+                           receiverProvince, receiverCity, receiverDistrict, receiverStreet, receiverAddress,
+                           site, addUser, addCompany, audit, sumMoney, paymentStatus, paymentMethod,
+                           returnTime, expressOnly, actualMoney, orderRemark, orderSign, serveCost, proposer,
+                           dingNumber)
+        VALUES (#{map.orderId}, #{map.orderTime}, #{map.receiverName},
+                #{map.receiverMobile}, #{map.receiverProvince}, #{map.receiverCity}, #{map.receiverDistrict},
+                #{map.receiverStreet}, #{map.receiverAddress}, #{map.site}, #{map.addUser},
+                #{map.addCompany}, #{map.audit}, #{map.sumMoney}, #{map.paymentStatus}, #{map.paymentMethod},
+                #{map.returnTime}, #{map.expressOnly}, #{map.now}, #{map.orderRemark}, #{map.orderSign},
+                #{map.serveCost}, #{map.proposer}, #{map.dingNumber})
+    </insert>
+    <!--导入订单-->
+    <insert id="addOrder">
+        insert into orders (orderId, orderTime, customerName, customerMobile, receiverName, receiverMobile,
+                            receiverProvince, receiverCity, receiverDistrict, receiverStreet, receiverAddress,
+                            receiverPostcode, expressOnly, site, addUser, addCompany, audit, sumMoney, paymentStatus,
+                            paymentMethod, returnTime, actualMoney, freight, retreatCargo, orderRemark,
+                            settlementAmount, orderSign, serveCost,proposer,dingNumber)
+        Values (#{orders.orderId}, #{orders.orderTime}, #{orders.customerName}, #{orders.customerMobile},
+                #{orders.receiverName}, #{orders.receiverMobile}, #{orders.receiverProvince}, #{orders.receiverCity},
+                #{orders.receiverDistrict}, #{orders.receiverStreet}, #{orders.receiverAddress},
+                #{orders.receiverPostcode}, #{orders.expressOnly}, #{orders.site}, #{orders.addUser},
+                #{orders.addCompany}, #{orders.audit}, #{orders.sumMoney}, #{orders.paymentStatus},
+                #{orders.paymentMethod}, #{orders.returnTime}, #{orders.actualMoney}, #{orders.freight},
+                #{orders.retreatCargo}, #{orders.orderRemark}, #{orders.settlementAmount}, #{orders.orderSign},
+                #{orders.serveCost},#{orders.proposer},#{orders.dingNumber})
+    </insert>
+
+
+    <!--修改订单审核状态为审核中-->
+    <update id="updateAudit">
+        update orders
+        set audit=#{audit}
+        where orderId = #{orderId}
+    </update>
+    <!--根据订单ID更改订单审核信息为订单已取消，更改订单结算状态为退款中-->
+    <update id="updateAuditPayment">
+        update orders
+        set audit=#{audit},
+            paymentStatus=#{paymentStatus}
+        where orderId = #{orderId}
+
+    </update>
+
+
+    <!--根据订单ID修改订单信息-->
+    <update id="updateOrder">
+        update orders
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.receiverName!=null and map.receiverName!=''">receiverName=#{map.receiverName},</if>
+            receiverMobile=#{map.receiverMobile},
+            receiverProvince=#{map.receiverProvince},
+            receiverCity=#{map.receiverCity},
+            receiverDistrict=#{map.receiverDistrict},
+            receiverStreet=#{map.receiverStreet},
+            receiverAddress=#{map.receiverAddress},
+            site=#{map.site},
+            sumMoney=#{map.sumMoney},
+            serveCost=#{map.serveCost},
+            freight=#{map.freight},
+            actualMoney=#{map.actualMoney},
+            proposer=#{map.proposer},
+            dingNumber=#{map.dingNumber},
+            <if test="map.orderRemark!=null">orderRemark=#{map.orderRemark},</if>
+            <if test="map.orderSign!=null">orderSign=#{map.orderSign},</if>
+            <if test="map.serveCost!=null">serveCost=#{map.serveCost},</if>
+        </trim>
+        where orderId=#{map.orderId}
+    </update>
+
+    <!--更改订单退货信息为退货中-->
+    <update id="updateRetreatCargo">
+        update orders
+        set retreatCargo=#{retreatCargo}
+        where orderId = #{orderId}
+
+    </update>
+
+    <!--修改付款状态-->
+    <update id="updatePaymentStatus">
+        update orders
+        <trim prefix="set" suffixOverrides=",">
+            <if test="paymentStatus!=null and paymentStatus!=''">paymentStatus=#{paymentStatus},</if>
+            <if test="settlementAmount!=null and settlementAmount!=''">settlementAmount=#{settlementAmount},</if>
+        </trim>
+        where orderId=#{orderId}
+    </update>
+    <!--直接购买 结算或设置紧急发货后 更改发货状态-->
+    <update id="updatePaymentByExpress">
+        update orders
+        set paymentStatus=#{paymentStatus},
+            settlementAmount=#{settlementAmount},
+            expressOnly=#{expressOnly}
+        where orderId = #{orderId}
+    </update>
+
+    <!--根据合同ID修改所有与合同相关联的订单-->
+    <update id="updateContract">
+        update orders
+        set contractId = 0
+        where orderId = #{orderId}
+
+    </update>
+    <update id="updateContractId">
+        update orders
+        set contractId = 0
+        where contractId = #{contractId}
+
+    </update>
+    <!--服务费管理-->
+    <update id="updateCost">
+        update orders
+        set serveCost=#{serveCost}
+        where orderId = #{orderId}
+
+    </update>
+    <!--订单关联发票-->
+    <update id="updateInvoice">
+        update orders
+        set orderInvoiceId=#{orderInvoiceId}
+        where orderId = #{orderId}
+
+    </update>
+    <!--根据发票Id解除与订单关联-->
+    <update id="updateInvoiceId">
+        update orders
+        set orderInvoiceId=0
+        where orderInvoiceId = #{invoiceId}
+
+    </update>
+    <!--更改退款金额-->
+    <update id="updateRefundAmount">
+        update orders
+        set refundAmount=#{now}
+        where orderId = #{orderId}
+    </update>
+    <!--删除订单信息-->
+    <delete id="deleteOrderId">
+        delete
+        from orders
+        where orderId = #{orderId}
+    </delete>
+
+    <!-- 查询公司额度下单未付款订单总额-->
+    <select id="findBySumMoney" resultType="com.ybau.transaction.domain.Money">
+
+        select actualMoney, freight, settlementAmount, refundAmount
+        from orders
+        where (paymentStatus = 1 || paymentStatus = 8 || paymentStatus = 6 || paymentStatus = 7)
+          and paymentMethod = 1
+          and addCompany = #{organizationId}
+          and audit not in (2, 4, 5)
+    </select>
+    <!--查询所有订单-->
+    <select id="findOrderAll" resultMap="orderAllMap">
+        select
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where 1=1
+        <if test='map.audit!=null'>and os.audit = #{map.audit}</if>
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.expressOnly!=null and map.expressOnly==0'>and os.expressOnly in (0,2)</if>
+        <if test='map.expressOnly!=null and map.expressOnly==1'>and os.expressOnly =1</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        ORDER BY os.orderTime DESC
+
+    </select>
+
+    <!--查询直接购买未结算订单-->
+    <select id="findOrder" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderInvoiceId,os.serveCost,os.orderSign,os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where
+        os.audit =1 and os.paymentStatus in(1,3,8) and os.paymentMethod= 3
+        <if test='map.expressOnly!=null'>and os.expressOnly = #{map.expressOnly}</if>
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.startTime!=null'>and os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>and os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        order by os.orderTime desc
+    </select>
+    <!--查询已审核未发货订单-->
+    <select id="findByAudit" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderInvoiceId,os.serveCost,os.orderSign,os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where
+        1=1 and os.audit=1 and os.expressOnly=0
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.startTime!=null'>and os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>and os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+
+        order by os.orderTime desc
+    </select>
+    <!--根据订单ID查询订单信息-->
+    <select id="findByOrder" resultMap="order">
+        select orders.orderId,
+               receiverName,
+               receiverMobile,
+               receiverProvince,
+               receiverCity,
+               receiverDistrict,
+               receiverStreet,
+               receiverAddress,
+               actualMoney,
+               freight,
+               invoice.*,
+               orderRemark,
+               orderSign,
+               sumMoney,
+               paymentMethod,
+               serveCost,
+               proposer,
+               dingNumber
+        from orders
+                 left join invoice on orders.orderId = invoice.orderId
+        where orders.orderId = #{orderId}
+    </select>
+    <!--根据订单Id查询出订单信息-->
+    <select id="findOrderId" resultMap="order">
+        select os.retreatCargo,
+               os.orderId,
+               os.orderTime,
+               os.actualMoney,
+               os.freight,
+               os.receiverName,
+               os.receiverMobile,
+               os.expressOnly,
+               os.site,
+               os.addUser,
+               os.addCompany,
+               os.audit,
+               os.sumMoney,
+               os.contractId,
+               os.paymentStatus,
+               os.paymentMethod,
+               os.returnTime,
+               os.settlementAmount,
+               os.refundAmount
+        from orders os
+        where os.orderId = #{orderId}
+    </select>
+    <!--查询取消退货订单-->
+    <select id="findCancelOrder" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderSign,os.serveCost,os.orderInvoiceId,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where (os.audit=5 or os.retreatCargo not in (0))
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.expressOnly!=null and map.expressOnly==0'>and os.expressOnly in (0,2)</if>
+        <if test='map.expressOnly!=null and map.expressOnly==1'>and os.expressOnly =1</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+
+    <!--查询公司订单-->
+    <select id="findCompanyOrder" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderSign,os.serveCost,os.orderInvoiceId,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where 1=1 and os.addCompany=#{map.organizationId}
+        <if test='map.audit!=null'>and os.audit = #{map.audit}</if>
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.expressOnly!=null and map.expressOnly==0'>and os.expressOnly in (0,2)</if>
+        <if test='map.expressOnly!=null and map.expressOnly==1'>and os.expressOnly =1</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+    <!--查询已发货订单-->
+    <select id="findShipments" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderSign,os.serveCost,os.orderInvoiceId,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where os.expressOnly =1
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.addUser!=null'>and os.addUser =#{map.addUser}</if>
+        <if test='map.addCompany!=null'>and os.addCompany =#{map.addCompany}</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+
+    <!--查询借样归还订单-->
+    <select id="findBorrow" resultMap="orderAllMap">
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderSign,os.orderInvoiceId,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where os.paymentMethod=2 and os.audit=1
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.expressOnly!=null and map.expressOnly==0'>and os.expressOnly in (0,2)</if>
+        <if test='map.expressOnly!=null and map.expressOnly==1'>and os.expressOnly =1</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+    <!--查询待核销订单-->
+    <select id="findByUnpaid" resultMap="orderAllMap">
+
+        select
+        os.proposer,os.dingNumber,os.refundAmount,os.orderSign,os.serveCost,os.orderInvoiceId,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on os.orderId=ie.orderId
+        where
+        os.audit = 1 and os.paymentStatus in(1,8) and os.paymentMethod= 1
+        <if test='map.receiverName!=null and map.receiverName!=""'>and os.receiverName like
+            CONCAT('%',#{map.receiverName},'%')
+        </if>
+        <if test='map.organizationId!=null and map.organizationId!=""'>and os.addCompany=#{map.organizationId}</if>
+        <if test='map.receiverMobile!=null and map.receiverMobile!=""'>and os.receiverMobile = #{map.receiverMobile}
+        </if>
+        <if test='map.orderId!=null and map.orderId!=""'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.site!=null and map.site!=""'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        order By os.orderTime DESC
+    </select>
+
+    <resultMap id="orderMapAll" type="com.ybau.transaction.domain.ExcelOrder">
+        <id column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"></result>
+        <result column="receiverName" property="receiverName"></result>
+        <result column="receiverMobile" property="receiverMobile"></result>
+        <result column="receiverProvince" property="receiverProvince"></result>
+        <result column="receiverCity" property="receiverCity"></result>
+        <result column="receiverDistrict" property="receiverDistrict"></result>
+        <result column="receiverStreet" property="receiverStreet"></result>
+        <result column="receiverAddress" property="receiverAddress"></result>
+        <result column="expressOnly" property="expressOnly"></result>
+        <result column="audit" property="audit"></result>
+        <result column="sumMoney" property="sumMoney"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="paymentMethod" property="paymentMethod"></result>
+        <result column="returnTime" property="returnTime"></result>
+        <result column="organizationName" property="organizationName"></result>
+        <result column="userName" property="addUser"></result>
+        <result column="name" property="name"></result>
+        <result column="actualMoney" property="actualMoney"/>
+        <result column="freight" property="freight"></result>
+        <result column="retreatCargo" property="retreatCargo"></result>
+        <result column="orderRemark" property="orderRemark"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="unitName" property="unitName"></result>
+        <result column="invoiceNumber" property="invoiceNumber"></result>
+        <result column="unitSite" property="unitSite"></result>
+        <result column="bankDeposit" property="bankDeposit"></result>
+        <result column="flag" property="flag"></result>
+        <result column="email" property="email"></result>
+        <result column="invoiceType" property="invoiceType"></result>
+        <result column="ticketSite" property="ticketSite"></result>
+        <result column="expressNumbers" property="expressNumbers"></result>
+        <result column="expressName" property="expressName"></result>
+        <result column="orderSign" property="orderSign"></result>
+        <result column="serveCost" property="serveCost"></result>
+        <result column="proposer" property="proposer"></result>
+        <result column="dingNumber" property="dingNumber"></result>
+        <collection property="goodsDetail" ofType="com.ybau.transaction.domain.Goods" >
+            <id column="goodsId" property="goodsId"/>
+            <result column="goodsName" property="goodsName"></result>
+            <result column="goodsPrice" property="goodsPrice"></result>
+            <result column="goodsNumber" property="goodsNumber"></result>
+            <result column="goodsCore" property="goodsCore"></result>
+            <result column="returnNumber" property="returnNumber"></result>
+            <result column="sellNumber" property="sellNumber"></result>
+        </collection>
+    </resultMap>
+
+    <!--根据开始时间和结束时间导出订单-->
+    <select id="findStartByEnd" resultMap="orderMapAll">
+        select os.orderSign,os.serveCost,os.refundAmount,os.proposer,os.dingNumber,g.goodsId,g.goodsName,g.goodsPrice,g.goodsNumber,g.goodsCore,g.returnNumber,g.sellNumber,
+        os.settlementAmount,os.orderRemark,os.retreatCargo,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite,os.customerName,os.customerMobile,os.receiverProvince,
+        os.receiverCity,os.receiverDistrict,os.receiverStreet,os.receiverAddress,os.receiverPostcode,os.paymentMethod,os.retreatCargo,es.expressNumbers,es.expressName
+        from orders os
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join invoice ie on ie.orderId=os.orderId
+        left join express es on es.orderId=os.orderId
+        left join order_goods og on og.orderId=os.orderId
+        left join goods g on g.id=og.goodsId
+        where 1=1
+        <if test='startDate!=null'>AND os.orderTime &gt;= #{startDate}</if>
+        <if test='endDate!=null'>AND os.orderTime &lt; #{endDate}</if>
+        <if test='proposer!=null and proposer!=""'>AND os.proposer like CONCAT('%',#{proposer},'%') </if>
+        <if test='goodsName!=null and goodsName!=""'>AND g.goodsName like CONCAT('%',#{goodsName},'%') </if>
+        ORDER BY os.orderTime DESC
+    </select>
+
+    <!--查询公司ID借样商品-->
+    <select id="findByOitId" resultMap="orderAllMap">
+        SELECT os.orderSign,
+               os.settlementAmount,
+               os.orderRemark,
+               er.retreatName,
+               er.retreatNumbers,
+               er.retreatTime,
+               os.retreatCargo,
+               sa.auditNode,
+               sa.processGroupId,
+               os.actualMoney,
+               os.freight,
+               os.orderId,
+               os.orderTime,
+               os.receiverName,
+               os.receiverMobile,
+               os.expressOnly,
+               os.site,
+               os.addUser,
+               os.addCompany,
+               os.audit,
+               os.sumMoney,
+               os.contractId,
+               os.paymentStatus,
+               os.paymentMethod,
+               os.returnTime,
+               u.id,
+               u.userName,
+               u.name,
+               ot.organizationId,
+               ot.organizationName,
+               ct.contractId,
+               ct.contractName,
+               ct.contractNumber,
+               er.expressId,
+               er.expressName,
+               er.expressNumbers,
+               er.practicalTime,
+               ie.invoiceId,
+               ie.unitName,
+               ie.invoiceNumber,
+               ie.unitSite,
+               ie.unitPhone,
+               ie.bankDeposit,
+               ie.bankAccount,
+               ie.flag,
+               ie.email,
+               ie.invoiceType,
+               ie.ticketSite,
+               os.orderInvoiceId,
+               os.proposer,
+               os.dingNumber
+        FROM orders os
+                 left join sponsoraudit sa on sa.sponsorAuditOrder = os.orderId
+                 left join user u on os.addUser = u.id
+                 left join organization ot on os.addCompany = ot.organizationId
+                 left join contract ct on os.contractId = ct.contractId
+                 left join express er on os.orderId = er.orderId
+                 left join invoice ie on ie.orderId = os.orderId
+        WHERE os.addCompany = #{organizationId}
+          and os.audit = 1
+          and os.paymentMethod = 2
+          and os.paymentStatus = 4
+          and os.expressOnly = 1
+        order By orderTime DESC
+    </select>
+
+    <!--根据用户ID查询用户所属订单-->
+    <select id="findByUserId" resultMap="orderAllMap">
+        SELECT os.orderSign,
+               os.settlementAmount,
+               os.orderRemark,
+               er.retreatName,
+               er.retreatNumbers,
+               er.retreatTime,
+               os.retreatCargo,
+               sa.auditNode,
+               sa.processGroupId,
+               os.actualMoney,
+               os.freight,
+               os.orderId,
+               os.orderTime,
+               os.receiverName,
+               os.receiverMobile,
+               os.expressOnly,
+               os.site,
+               os.addUser,
+               os.addCompany,
+               os.audit,
+               os.sumMoney,
+               os.contractId,
+               os.paymentStatus,
+               os.paymentMethod,
+               os.returnTime,
+               u.id,
+               u.userName,
+               u.name,
+               ot.organizationId,
+               ot.organizationName,
+               ct.contractId,
+               ct.contractName,
+               ct.contractNumber,
+               er.expressId,
+               er.expressName,
+               er.expressNumbers,
+               er.practicalTime,
+               ie.invoiceId,
+               ie.unitName,
+               ie.invoiceNumber,
+               ie.unitSite,
+               ie.unitPhone,
+               ie.bankDeposit,
+               ie.bankAccount,
+               ie.flag,
+               ie.email,
+               ie.invoiceType,
+               ie.ticketSite,
+               os.serveCost,
+               os.orderInvoiceId
+        FROM orders os
+                 left join sponsoraudit sa on sa.sponsorAuditOrder = os.orderId
+                 left join user u on os.addUser = u.id
+                 left join organization ot on os.addCompany = ot.organizationId
+                 left join contract ct on os.contractId = ct.contractId
+                 left join express er on os.orderId = er.orderId
+                 left join invoice ie on ie.orderId = os.orderId
+        WHERE os.addUser = #{uId}
+          and os.audit = 1
+          and os.paymentMethod = 2
+          and os.paymentStatus = 4
+          and os.expressOnly = 1
+        order By orderTime DESC
+    </select>
+
+    <!--根据用户Id查询用户所下的未关联合同的订单订单-->
+    <select id="findOrderByUser" resultMap="orderAllMap">
+
+        select
+        os.orderSign,os.serveCost,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where os.addUser=#{id} and os.contractId=0
+        <if test='map.startTime!=null'>AND orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.site!=null'>and site like CONCAT('%',#{map.site},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+    <!--根据用户ID查询未关联合同附件的订单-->
+    <select id="findNotByUser" resultMap="orderAllMap">
+        select
+        os.orderSign,os.serveCost,
+        os.settlementAmount,os.orderRemark,os.retreatCargo,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join invoice ie on ie.orderId=os.orderId
+        where os.orderInvoiceId=0
+        <if test='id!=null'>AND os.addUser=#{id}</if>
+        <if test='map.startTime!=null'>AND orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.site!=null'>and site like CONCAT('%',#{map.site},'%')</if>
+        ORDER BY os.orderTime DESC
+
+    </select>
+    <!--根据发票ID查询已关联发票订单-->
+    <select id="relevanceInvoice" resultMap="orderAllMap">
+        select
+        os.orderSign,os.serveCost,
+        os.settlementAmount,os.orderRemark,os.retreatCargo,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join invoice ie on ie.orderId=os.orderId
+        where os.orderInvoiceId=#{map.orderInvoiceId}
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        ORDER BY os.orderTime DESC
+    </select>
+    <!--申请人金额汇总-->
+    <select id="proposerMoney" resultMap="orderAllMap">
+
+        select
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where 1=1 and os.paymentMethod =2
+        <if test='map.proposer!=null'>and os.proposer =#{map.proposer}</if>
+        ORDER BY os.orderTime DESC
+    </select>
+    <select id="proposerMoneyPaging" resultMap="orderAllMap">
+        select
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from orders os
+        left join sponsoraudit sa on sa.sponsorAuditOrder=os.orderId
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where 1=1 and os.paymentMethod =2
+        <if test='map.proposer!=null'>and os.proposer =#{map.proposer}</if>
+        ORDER BY os.orderTime DESC
+
+    </select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.GroupingMapper">
+
+
+    <resultMap id="groupingMap" type="com.ybau.transaction.domain.Grouping">
+        <id column="groupingId" property="groupingId"></id>
+        <result column="groupingName" property="groupingName"></result>
+        <collection property="users" ofType="com.ybau.transaction.domain.User">
+            <id column="id" property="id" />
+            <result column="username" property="userName"  />
+            <result column="name" property="name" />
+        </collection>
+    </resultMap>
+
+
+<!--新增分组-->
+    <insert id="saveGrouping">
+        insert into `grouping`
+     (groupingName,departmentId)
+    values
+     (#{map.groupingName},#{map.departmentId})
+
+    </insert>
+    <!--修改部门分组-->
+    <update id="updateGrouping">
+            update `grouping`
+            <trim prefix="set" suffixOverrides=",">
+                <if test="map.groupingName!=null and map.groupingName!=''">groupingName=#{map.groupingName},</if>
+            </trim>
+            where groupingId=#{map.groupingId}
+    </update>
+    <!--根据ID删除分组信息-->
+    <delete id="deleteGrouping">
+         delete from `grouping` where groupingId=#{groupingId}
+    </delete>
+    <!--根据ID查询分组信息-->
+    <select id="findByGId" resultType="com.ybau.transaction.domain.Grouping">
+        select groupingId,groupingName from `grouping` where groupingId=#{groupingId}
+    </select>
+
+    <!--查询分组下用户列表-->
+    <select id="findByUser" resultMap="groupingMap" >
+        select gp.*,u.id,u.username,u.name from `grouping` gp
+        left join user u on u.groupingId=gp.groupingId
+    </select>
+    <!--根据部门ID查询是否存在下属分组-->
+    <select id="findBycount" resultType="java.lang.Integer">
+        select count(groupingId) from `grouping` where departmentId=#{departmentId}
+    </select>
+</mapper>

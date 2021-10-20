@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.AuditMapper">
+
+    <resultMap id="auditMap" type="com.ybau.transaction.domain.Audit">
+        <id column="auditId" property="auditId"></id>
+        <id column="auditUser" property="auditUser"></id>
+        <id column="sponsorAuditId" property="sponsorAuditId"></id>
+        <id column="auditOpinion" property="auditOpinion"></id>
+        <id column="auditRemarks" property="auditRemarks"></id>
+        <id column="auditTime" property="auditTime"></id>
+        <id column="auditflow" property="auditflow"></id>
+        <id column="processGroupId" property="processGroupId"></id>
+        <id column="startTime" property="startTime"></id>
+    </resultMap>
+
+    <resultMap id="orderAllMap" type="com.ybau.transaction.domain.Order">
+        <id column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"></result>
+        <result column="receiverName" property="receiverName"></result>
+        <result column="receiverMobile" property="receiverMobile"></result>
+        <result column="expressOnly" property="expressOnly"></result>
+        <result column="site" property="site"></result>
+        <result column="paymentStatus" property="paymentStatus"></result>
+        <result column="paymentMethod" property="paymentMethod"></result>
+        <result column="sumMoney" property="sumMoney"></result>
+        <result column="returnTime" property="returnTime"></result>
+        <result column="audit" property="audit"></result>
+        <result column="addUser" property="addUser"/>
+        <result column="addCompany" property="addCompany"></result>
+        <result column="auditNode" property="auditFlowGrade"></result>
+        <result column="processGroupId" property="processGroupId"></result>
+        <result column="actualMoney" property="actualMoney"></result>
+        <result column="freight" property="freight"></result>
+        <result column="retreatCargo" property="retreatCargo"></result>
+        <result column="orderRemark" property="orderRemark"></result>
+        <result column="settlementAmount" property="settlementAmount"></result>
+        <result column="orderSign" property="orderSign"></result>
+        <result column="serveCost" property="serveCost"></result>
+        <result column="orderInvoiceId" property="orderInvoiceId"></result>
+        <result column="refundAmount" property="refundAmount"></result>
+        <result column="proposer" property="proposer"></result>
+        <result column="dingNumber" property="dingNumber"></result>
+        <association property="user" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"/>
+            <result column="userName" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="invoice" javaType="com.ybau.transaction.domain.Invoice">
+            <id column="invoiceId" property="invoiceId"/>
+            <result column="unitName" property="unitName"/>
+            <result column="invoiceNumber" property="invoiceNumber"/>
+            <result column="unitSite" property="unitSite"/>
+            <result column="unitPhone" property="unitPhone"/>
+            <result column="bankAccount" property="bankAccount"/>
+            <result column="bankDeposit" property="bankDeposit"/>
+            <result column="flag" property="flag"/>
+            <result column="email" property="email"/>
+            <result column="invoiceType" property="invoiceType"/>
+            <result column="ticketSite" property="ticketSite"/>
+        </association>
+        <association property="auditNode" javaType="com.ybau.transaction.domain.Audit">
+            <id column="auditId" property="auditId"/>
+            <result column="auditOpinion" property="auditOpinion"/>
+            <result column="auditRemarks" property="auditRemarks"/>
+            <result column="auditTime" property="auditTime"/>
+            <result column="startTime" property="startTime"/>
+            <result column="auditFlowName" property="auditFlowName"/>
+        </association>
+        <association property="organization" javaType="com.ybau.transaction.domain.Organization">
+            <id column="organizationId" property="organizationId"/>
+            <result column="organizationName" property="organizationName"/>
+        </association>
+        <association property="contract" javaType="com.ybau.transaction.domain.Contract">
+            <id column="contractId" property="contractId"/>
+            <result column="contractName" property="contractName"/>
+            <result column="contractNumber" property="contractNumber"/>
+        </association>
+        <association property="express" javaType="com.ybau.transaction.domain.Express">
+            <id column="expressId" property="expressId"/>
+            <result column="expressName" property="expressName"/>
+            <result column="expressNumbers" property="expressNumbers"/>
+            <result column="retreatName" property="retreatName"/>
+            <result column="retreatNumbers" property="retreatNumbers"/>
+            <result column="retreatTime" property="retreatTime"/>
+            <result column="practicalTime" property="practicalTime"/>
+        </association>
+        <association property="goodsDetail" column="orderId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.GoodsMapper.findByOrdersId"/>
+        <association property="auditFlowList" column="processGroupId"
+                     javaType="java.util.List"
+                     select="com.ybau.transaction.mapper.AuditFlowMapper.findByProcessGroupId"/>
+    </resultMap>
+
+
+    <!--插入待审核消息-->
+    <insert id="saveAudit">
+        insert into audit
+        (auditUser, sponsorAuditId, auditOpinion, auditflow, processGroupId, startTime)
+        values (#{id}, #{sponsorAuditId}, #{auditOpinion}, #{auditFlowId}, #{processGroupId}, #{startTime})
+    </insert>
+
+
+    <insert id="saveAuditPass">
+        insert into audit
+        (auditUser, sponsorAuditId, auditOpinion, auditflow, processGroupId, auditTime, startTime)
+        values (#{id}, #{sponsorAuditId}, #{auditOpinion}, #{auditFlowId}, #{processGroupId}, #{auditTime},
+                #{startTime})
+
+    </insert>
+    <!--更改跟本次相关审核信息-->
+    <update id="updateSponsorAudit">
+        update audit
+        set auditOpinion=#{auditOpinion},
+            auditRemarks=#{auditRemarks},
+            auditTime=#{auditTime}
+        where sponsorAuditId = #{sponsorAuditId}
+          and auditflow = #{auditFlow}
+          and auditId not in (#{auditId})
+          and auditOpinion = 4
+
+    </update>
+    <!--根据ID修改相关信息-->
+    <update id="updateAudit">
+        update audit
+        set auditOpinion=#{auditOpinion},
+            auditRemarks=#{auditRemarks},
+            auditTime=#{auditTime}
+        where auditId = #{auditId}
+    </update>
+
+    <!--更改审核信息 (只更改待审核状态中的信息)-->
+    <update id="updateBySponsorAudit">
+        update audit
+        set auditOpinion=#{auditOpinion},
+            auditTime=#{auditTime}
+        where sponsorAuditId = #{sponsorAuditId}
+          and auditOpinion = #{audit}
+    </update>
+
+    <!--根据ID删除用户审核记录-->
+    <delete id="deleteOrderId">
+        delete
+        from user_order
+        where orderId = #{orderId}
+
+    </delete>
+
+
+    <!--根据用户ID查询该用户待审核的订单-->
+    <select id="findAll" resultMap="orderAllMap">
+        SELECT
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        a.auditId,os.settlementAmount,os.orderRemark,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        FROM audit a
+        LEFT JOIN sponsoraudit sa ON sa.sponsorAuditId=a.sponsorAuditId
+        LEFT JOIN orders os ON sa.sponsorAuditOrder=os.orderid
+        LEFT JOIN user u ON u.`id`=os.addUser
+        LEFT JOIN contract ct ON os.contractId=ct.contractId
+        LEFT JOIN organization ot ON os.addCompany=ot.organizationId
+        left join invoice ie on ie.orderId=os.orderId
+        where a.auditUser=#{map.userId} and a.auditOpinion=4
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.startTime!=null'>AND os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>AND os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+
+        ORDER BY os.orderTime DESC
+    </select>
+    <!--根据Id查询审核信息-->
+    <select id="findByAuditId" resultMap="auditMap">
+        select *
+        from audit
+        where auditId = #{auditId}
+    </select>
+    <!--查询会签是否已经全部审核完-->
+    <select id="findIfAuditAll" resultType="com.ybau.transaction.domain.Audit">
+        select *
+        from audit
+        where sponsorAuditId = #{sponsorAuditId}
+          and auditflow = #{auditflow}
+          and auditOpinion = 4
+    </select>
+    <!--查询已经审核过的订单-->
+    <select id="findByOperation" resultMap="orderAllMap">
+        select
+        os.orderSign,os.serveCost,os.orderInvoiceId,os.refundAmount,os.proposer,os.dingNumber,
+        os.settlementAmount,os.orderRemark,er.retreatName,er.retreatNumbers,er.retreatTime,os.retreatCargo,sa.auditNode,sa.processGroupId,os.actualMoney,os.freight,os.orderId,os.orderTime,os.receiverName,os.receiverMobile,os.expressOnly,os.site,os.addUser,os.addCompany,os.audit,os.sumMoney,os.contractId,os.paymentStatus,os.paymentMethod,os.returnTime,
+        u.id,u.userName,u.name,ot.organizationId,ot.organizationName,ct.contractId,ct.contractName,ct.contractNumber,er.expressId,er.expressName,er.expressNumbers,er.practicalTime,ie.invoiceId,ie.unitName,ie.invoiceNumber,ie.unitSite,ie.unitPhone,ie.bankDeposit,ie.bankAccount,ie.flag,ie.email,ie.invoiceType,ie.ticketSite
+        from user_order uo
+        left join sponsoraudit sa on sa.sponsorAuditOrder=uo.orderId
+        left join orders os on uo.orderId=os.orderid
+        left join user u on os.addUser=u.id
+        left join organization ot on os.addCompany=ot.organizationId
+        left join contract ct on os.contractId=ct.contractId
+        left join express er on os.orderId=er.orderId
+        left join invoice ie on ie.orderId=os.orderId
+        where uo.userId=#{map.auditUser}
+        <if test='map.audit!=null'>and os.audit = #{map.audit}</if>
+        <if test='map.paymentStatus!=null'>and os.paymentStatus = #{map.paymentStatus}</if>
+        <if test='map.expressOnly!=null and map.expressOnly==0'>and os.expressOnly in (0,2)</if>
+        <if test='map.expressOnly!=null and map.expressOnly==1'>and os.expressOnly =1</if>
+        <if test='map.name!=null'>and u.name like CONCAT('%',#{map.name},'%')</if>
+        <if test='map.organizationName!=null'>and ot.organizationName like CONCAT('%',#{map.organizationName},'%')</if>
+        <if test='map.contractNumber!=null'>and ct.contractNumber like CONCAT('%',#{map.contractNumber},'%')</if>
+        <if test='map.expressNumbers!=null'>and er.expressNumbers like CONCAT('%',#{map.expressNumbers},'%')</if>
+        <if test='map.startTime!=null'>and os.orderTime &gt;= #{map.startTime}</if>
+        <if test='map.endTime!=null'>and os.orderTime &lt;= #{map.endTime}</if>
+        <if test='map.receiverName!=null'>and os.receiverName like CONCAT('%',#{map.receiverName},'%')</if>
+        <if test='map.receiverMobile!=null'>and os.receiverMobile like CONCAT('%',#{map.receiverMobile},'%')</if>
+        <if test='map.site!=null'>and os.site like CONCAT('%',#{map.site},'%')</if>
+        <if test='map.orderId!=null'>and os.orderId like CONCAT('%',#{map.orderId},'%')</if>
+        <if test='map.paymentMethod!=null'>and os.paymentMethod =#{map.paymentMethod}</if>
+        <if test='map.retreatCargo!=null'>and os.retreatCargo =#{map.retreatCargo}</if>
+        <if test='map.retreatNumbers!=null'>and er.retreatNumbers like CONCAT('%',#{map.retreatNumbers},'%')</if>
+        order by os.orderTime desc
+    </select>
+    <!--查询是否已经创建审核消息-->
+    <select id="findUserFlowSponsor" resultType="java.lang.Integer">
+        select count(auditId)
+        from audit
+        where auditUser = #{id}
+          and sponsorAuditId = #{sponsorAuditId}
+          and auditflow = #{auditFlowId}
+    </select>
+</mapper>

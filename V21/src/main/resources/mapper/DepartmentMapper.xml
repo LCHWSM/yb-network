@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.DepartmentMapper">
+
+    <resultMap id="departmentMap" type="com.ybau.transaction.domain.Department">
+        <id column="departmentId" property="departmentId"/>
+        <result column="departmentName" property="departmentName"></result>
+        <result column="departmentNumber" property="departmentNumber"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+        <collection property="groupings" ofType="com.ybau.transaction.domain.Grouping">
+            <id column="groupingId" property="groupingId"/>
+            <result column="groupingName" property="groupingName"/>
+        </collection>
+    </resultMap>
+    <!-- 插入公司部门-->
+    <insert id="saveDepartment">
+    insert into department
+     (departmentName,organizationId,departmentNumber,addUser,addTime)
+    values
+     (#{map.departmentName},#{map.organizationId},#{map.departmentNumber},#{map.addUser},#{map.addTime})
+    </insert>
+    <!--修改公司部门-->
+    <update id="updateDepartment">
+        update department
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.departmentName!=null and map.departmentName!=''">departmentName=#{map.departmentName},</if>
+            <if test="map.departmentNumber!=null and map.departmentNumber!=''">departmentNumber=#{map.departmentNumber},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime}
+            </if>
+        </trim>
+        where departmentId=#{map.departmentId}
+    </update>
+    <!--删除公司-->
+    <delete id="deleteDepartment">
+        delete from department where departmentId=#{departmentId}
+
+    </delete>
+
+    <!--根据公司ID查询该公司部门（分页，筛选）-->
+    <select id="findByOId" resultMap="departmentMap">
+
+        SELECT dt.*,au.id auId,au.username auUserName,au.name auName,uu.id UUID,uu.username uuUserName,uu.name
+        uuName,gi.groupingName,gi.groupingId
+        FROM department dt
+        LEFT JOIN user au ON dt.addUser=au.id
+        LEFT JOIN user uu ON dt.updateUser=uu.id
+        LEFT JOIN `grouping` gi ON gi.departmentId=dt.departmentId
+        where 1=1
+        <if test="map.departmentName!=null and map.departmentName!=''">and dt.departmentName like
+            CONCAT('%',#{map.departmentName},'%')
+        </if>
+        <if test="map.departmentNumber!=null and map.departmentNumber!=''">and dt.departmentNumber like
+            CONCAT('%',#{map.departmentNumber},'%')
+        </if>
+        and dt.organizationId=#{map.organizationId}
+        ORDER BY addTime DESC
+    </select>
+    <!--根据ID查询部门信息-->
+    <select id="findByDId" resultType="com.ybau.transaction.domain.Department">
+select departmentId,departmentName from department where departmentId=#{departmentId}
+    </select>
+    <!--根据公司ID查询公司下属部门分组信息-->
+    <select id="findDepartment" resultMap="departmentMap">
+ select dt.departmentId,dt.departmentName,gi.groupingName,gi.groupingId
+        from department dt
+        left join `grouping` gi on dt.departmentId=gi.departmentId
+        where dt.organizationId=#{organizationId}
+    </select>
+    <!---->
+    <select id="findByCount" resultType="java.lang.Integer">
+        select count(departmentId) from department where organizationId=#{id}
+
+    </select>
+</mapper>

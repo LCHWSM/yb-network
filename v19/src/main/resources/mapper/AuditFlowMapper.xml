@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.AuditFlowMapper">
+
+    <resultMap id="auditFlowMap" type="com.ybau.transaction.domain.AuditFlow">
+        <id column="auditFlowId" property="auditFlowId"/>
+        <result column="auditFlowName" property="auditFlowName"></result>
+        <result column="auditFlowGrade" property="auditFlowGrade"></result>
+        <result column="auditFlowWay" property="auditFlowWay"></result>
+        <result column="auditFlowCourse" property="auditFlowCourse"></result>
+        <result column="auditUser" property="auditUser"></result>
+        <result column="organizationId" property="organizationId"></result>
+        <result column="addTime" property="addTime"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="id" property="id"/>
+            <result column="username" property="userName"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="auditUserList" column="auditFlowId"
+                     javaType="java.util.List" select="com.ybau.transaction.mapper.AuditFlowMapper.findByAG"/>
+    </resultMap>
+
+
+    <!--新增公司节点信息-->
+    <insert id="saveAuditFlow" useGeneratedKeys="true" keyProperty="nodeDraft.auditFlowId">
+        insert into
+        auditflow (auditFlowName,auditFlowGrade,auditFlowWay,auditFlowCourse,auditUser,organizationId,addUser,addTime,processGroupId)
+        values
+        (#{nodeDraft.nodeDraftName},#{nodeDraft.nodeDraftGrade},#{nodeDraft.nodeDraftWay},#{nodeDraft.nodeDraftCourse},#{nodeDraft.nodeDraftUser},#{nodeDraft.organizationId},#{nodeDraft.addUser.id},#{nodeDraft.addTime},#{processGroupId})
+    </insert>
+    <!--为分支判断时存入可审批的组-->
+    <insert id="saveAuditflowByGrouping">
+      insert into auditflow_grouping (auditFlowId,groupingId,auditUserId)values (#{auditFlowId},#{groupingId},#{auditUserId})
+    </insert>
+
+
+    <!--根据公司ID查询公司节点数量-->
+    <select id="findByOId" resultType="com.ybau.transaction.domain.AuditFlow">
+         select * from auditflow where organizationId=#{organizationId} and processGroupId=#{processGroupId}  order by auditFlowGrade
+    </select>
+
+    <!--根据用户分组ID和目前审核所在节点查询可审核人ID-->
+    <select id="findByGrouping" resultType="java.lang.String">
+
+   select auditUserId from auditflow_grouping where auditFlowId=#{auditNode} and groupingId=#{grouping}
+    </select>
+    <!--根据分组ID查询分组内节点信息-->
+    <select id="findByProcessGroupId" resultMap="auditFlowMap">
+   select af.*,u.id,u.username,u.name
+   from auditflow af
+   left join user u on u.id=af.addUser
+   where processGroupId=#{processGroupId}
+   order by auditFlowGrade
+    </select>
+
+
+    <!--根据节点ID查询分支判断信息-->
+    <select id="findByAG" resultType="java.util.Map">
+    select gp.*,u.id,u.username,u.name
+    from auditflow_grouping ag
+    left join user u on u.id=auditUserId
+    left join `grouping` gp on gp.groupingId=ag.groupingId
+    where auditFlowId=#{auditFlowId}
+    </select>
+
+    <!--根据ID查看节点信息-->
+    <select id="findAuditFlow" resultType="com.ybau.transaction.domain.AuditFlow">
+        select * from auditflow where auditFlowId=#{auditflow}
+
+    </select>
+
+    <!--根据订单目前所在审核顺序，和所在分组查询该节点信息-->
+    <select id="findGradeByGroupId" resultType="com.ybau.transaction.domain.AuditFlow">
+    select * from auditflow where auditFlowGrade=#{auditNode} and processGroupId=#{processGroupId}
+    </select>
+
+</mapper>

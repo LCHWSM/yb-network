@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.PermissionMapper">
+    <!-- 为角色新增权限-->
+    <insert id="savePermissionByRId">
+  insert into role_permission (rid,pid) values (#{rId},#{pId})
+    </insert>
+
+    <!-- 删除角色与权限关联-->
+    <delete id="deleteByRId">
+        delete from role_permission where rid =#{rid}
+    </delete>
+
+    <!-- 查询该用户下所有权限-->
+    <select id="findByUserId" resultType="com.ybau.transaction.domain.Permission">
+        SELECT  p.* FROM permission p WHERE  p.id IN (SELECT pid FROM role_permission WHERE rid IN (SELECT rid FROM user_role WHERE uid = #{uid}))
+    </select>
+
+    <!-- 查询权限列表-->
+    <select id="findAll" resultType="com.ybau.transaction.domain.Permission">
+
+        select * from permission order by sequence
+    </select>
+
+    <!--根据订单状态查询可审批人-->
+    <select id="findByAudit" resultType="com.ybau.transaction.domain.User">
+          SELECT  u.username,u.organizationId FROM user u WHERE  u.id IN (SELECT uid FROM user_role WHERE rid IN (SELECT rid FROM role_permission WHERE pid IN (SELECT id FROM permission WHERE url=#{audit}) ))
+    </select>
+
+</mapper>

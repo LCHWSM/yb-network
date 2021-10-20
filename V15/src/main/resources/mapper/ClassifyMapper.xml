@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.ClassifyMapper">
+
+    <resultMap id="classifyMap" type="com.ybau.transaction.domain.Classify">
+        <id column="id" property="id"/>
+        <result column="name" property="name"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="sort" property="sort"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+
+    <!-- 新增分类-->
+    <insert id="saveClassify">
+        insert into classify (name,addTime,addUser,sort) values (#{map.name},#{map.addTime},#{map.addUser},#{map.sort})
+    </insert>
+    <!--修改分类 -->
+    <update id="updateClassify">
+        update classify
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.name!=null and map.name!=''">name=#{map.name},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime}
+            </if>
+        </trim>
+        where id=#{map.id}
+    </update>
+    <!--更改分类排位顺序-->
+    <update id="updateSort">
+        update classify set sort=#{nextSort} where id=#{upClassifyId}
+
+    </update>
+    <!-- 根据ID删除分类-->
+    <delete id="deleteById">
+        delete  from classify where id =#{id}
+
+    </delete>
+
+    <!-- 查询分类列表-->
+    <select id="findAll" resultMap="classifyMap">
+        select c.*,au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name uuName
+        from classify c
+        left join user au on c.addUser=au.id
+        left join user uu on c.updateUser=uu.id
+        where 1=1
+        <if test="classifyName!=null and classifyName!=''">and c.name like CONCAT('%',#{classifyName},'%')</if>
+        order By sort
+
+    </select>
+    <!-- 根据名字查询分类是否存在-->
+    <select id="findByName" resultType="java.lang.Integer">
+        select count(id) from classify where name=#{name}
+    </select>
+    <!--查询所有分类列表-->
+    <select id="findClassify" resultType="com.ybau.transaction.domain.Classify">
+       select sort from classify order by sort
+    </select>
+
+</mapper>
+
+

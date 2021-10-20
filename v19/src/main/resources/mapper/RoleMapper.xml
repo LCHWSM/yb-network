@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.RoleMapper">
+
+
+    <resultMap id="RoleMap" type="com.ybau.transaction.domain.Role">
+        <id column="id" property="id"/>
+        <result column="name" property="name"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="roleDesc" property="roleDesc"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+    <!--新增角色-->
+    <insert id="saveRole" useGeneratedKeys="true" keyProperty="id">
+
+        insert into role (name, addTime, roleDesc, addUser)
+        values (#{map.name}, #{map.addTime}, #{map.roleDesc}, #{map.addUser})
+    </insert>
+
+    <!--用户添加权限-->
+    <insert id="saveRoleByUId">
+
+        insert into user_role (uid, rid)
+        values (#{uId}, #{role})
+    </insert>
+    <!--更新角色-->
+    <update id="updateRole">
+        update role
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.name!=null and map.name!=''">name =#{map.name},</if>
+            <if test="map.roleDesc !=null and map.roleDesc !=''">roleDesc=#{map.roleDesc},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime}
+            </if>
+        </trim>
+        where id=#{map.id}
+    </update>
+    <!--删除用户——角色中间表信息-->
+    <delete id="deleteRole">
+        delete
+        from user_role
+        where uid = #{id}
+    </delete>
+    <!--删除角色-->
+    <delete id="deleteRoleById">
+        delete
+        from role
+        where id = #{id}
+    </delete>
+    <!--查询角色列表-->
+    <select id="findAll" resultMap="RoleMap">
+        select r.*,au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name uuName
+        from role r
+        left join user au on r.addUser=au.id
+        left join user uu on r.updateUser=uu.id
+        where 1=1
+        <if test="roleName!=null and roleName!=''">and r.name like CONCAT('%',#{roleName},'%')</if>
+        ORDER BY addTime DESC
+    </select>
+    <!--根据角色ID查询角色拥有的权限-->
+    <select id="findByRId" resultType="com.ybau.transaction.domain.Permission">
+        select *
+        from permission
+        WHERE id in (select pid from role_permission where rid = #{id})
+        order by sequence
+    </select>
+    <!--查询角色没有的权限-->
+    <select id="findOtherByRId" resultType="com.ybau.transaction.domain.Permission">
+        SELECT *
+        FROM permission
+        WHERE id NOT IN (SELECT pid FROM role_permission WHERE rid = #{id})
+        order by sequence
+    </select>
+    <!--根据角色名字查询是否重复-->
+    <select id="findByName" resultType="java.lang.Integer">
+        select count(id)
+        from role
+        where name = #{name}
+    </select>
+
+
+</mapper>

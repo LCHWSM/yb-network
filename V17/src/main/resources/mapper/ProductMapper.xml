@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.ProductMapper">
+
+    <resultMap id="productMap" type="com.ybau.transaction.domain.Product">
+        <id column="id" property="id"/>
+        <result column="name" property="name"></result>
+        <result column="core" property="core"></result>
+        <result column="price" property="price"></result>
+        <result column="cost" property="cost"></result>
+        <result column="param" property="param"></result>
+        <result column="status" property="status"></result>
+        <result column="description" property="description"></result>
+        <result column="images" property="images"></result>
+        <result column="addTime" property="addTime"></result>
+        <result column="updateTime" property="updateTime"></result>
+        <result column="warehouse" property="warehouse"></result>
+        <result column="classifyName" property="classifyName"></result>
+        <result column="red" property="red"></result>
+        <result column="yellow" property="yellow"></result>
+        <result column="universal" property="universal"></result>
+        <association property="universals" javaType="com.ybau.transaction.domain.Universal">
+            <id column="u" property="universalId"/>
+            <result column="r" property="red"/>
+            <result column="y" property="yellow"></result>
+        </association>
+        <association property="addUser" javaType="com.ybau.transaction.domain.User">
+            <id column="auId" property="id"/>
+            <result column="auUserName" property="userName"/>
+            <result column="auName" property="name"/>
+        </association>
+        <association property="updateUser" javaType="com.ybau.transaction.domain.User">
+            <id column="uuId" property="id"/>
+            <result column="uuUserName" property="userName"/>
+            <result column="uuName" property="name"/>
+        </association>
+    </resultMap>
+
+    <!-- 新增商品-->
+    <insert id="saveProduct">
+
+        INSERT INTO product(name, core, price, cost, param, status, description, images, addTime, addUser, classify_id)
+        VALUES (#{map.name}, #{map.core}, #{map.price}, #{map.cost}, #{map.param}, #{map.status}, #{map.description},
+                #{map.images}, #{map.addTime}, #{map.addUser}, #{map.classify_id})
+    </insert>
+    <!-- 修改商品-->
+    <update id="updateProduct">
+        update product
+        <trim prefix="set" suffixOverrides=",">
+            <if test="map.name!=null and map.name!=''">name=#{map.name},</if>
+            <if test="map.core!=null and map.core!=''">core=#{map.core},</if>
+            <if test="map.price!=null and map.price!=''">price=#{map.price},</if>
+            <if test="map.cost!=null and map.cost!=''">cost=#{map.cost},</if>
+            <if test="map.param!=null and map.param!=''">param=#{map.param},</if>
+            <if test="map.classify_id!=null and map.classify_id!=''">classify_id=#{map.classify_id},</if>
+            status=#{map.status},
+            <if test="map.description!=null and map.description!=''">description=#{map.description},</if>
+            <if test="map.images!=null and map.images!=''">images=#{map.images},</if>
+            <if test="map.updateUser!=null and map.updateUser!=''">
+                updateUser=#{map.updateUser},updateTime=#{map.updateTime}
+            </if>
+        </trim>
+        where id=#{map.id}
+    </update>
+
+    <!-- 增加库存-->
+    <update id="updateAddWarehouse">
+        update product
+        set warehouse=warehouse + #{map.now}
+        where id = #{map.id}
+    </update>
+
+    <!-- 减少库存-->
+    <update id="updateSubWarehouse">
+        update product
+        set warehouse=warehouse - #{map.now}
+        where id = #{map.id}
+          and warehouse >= #{map.now}
+    </update>
+
+
+    <!--增加库存-->
+    <update id="updateWarehouse">
+        update product
+        set warehouse=warehouse + #{map.now}
+        where id = #{map.id}
+    </update>
+
+
+    <!-- 根据ID删除商品-->
+    <delete id="deleteProduct">
+        delete
+        from product
+        where id = #{id}
+    </delete>
+
+    <!-- 条件查询商品列表-->
+    <select id="findAll" resultMap="productMap">
+
+        select product.*,
+        classify.name classifyName,
+        universal.universalId u ,universal.red r ,universal.yellow y,
+        au.id auId,au.username auUserName,au.name auName,uu.id uuId,uu.username uuUserName,uu.name uuName from product
+        LEFT JOIN classify ON product.classify_Id=classify.id
+        LEFT JOIN universal ON product.universal=universal.universalid
+        left join user au on product.addUser=au.id
+        left join user uu on product.updateUser=uu.id
+        where 1=1
+        <if test="map.name!=null and map.name!=''">and product.name like CONCAT('%',#{map.name},'%')</if>
+        <if test="map.core!=null and map.core !=''">and core like CONCAT('%',#{map.core},'%')</if>
+        <if test="map.status!=null and map.status !=''">and status=#{map.status}</if>
+        <if test="map.classifyName!=null and map.classifyName!=''">and classify.name like
+            CONCAT('%',#{map.classifyName},'%')
+        </if>
+        <if test="map.startingPrice!=null and map.startingPrice!=''">AND price &gt;= #{map.startingPrice}</if>
+        <if test="map.closingPrice!=null and map.closingPrice!=''">and price &lt;= #{map.closingPrice}</if>
+        <if test="map.warehouse==3 ">and warehouse &lt;= #{map.red}</if>
+        <if test="map.warehouse==1 ">and warehouse &gt; #{map.yellow}</if>
+        <if test="map.warehouse==2 ">and warehouse &lt;= #{map.yellow} and warehouse &gt; #{map.red}</if>
+
+        ORDER BY core DESC
+    </select>
+    <!-- 根据id查询单个商品-->
+    <select id="findById" resultMap="productMap">
+        select product.*, classify.name classifyName
+        from product
+                 LEFT JOIN classify ON product.classify_Id = classify.id
+        where product.id = #{id}
+    </select>
+
+    <!-- 根据分类ID查询该分类下是否有商品-->
+    <select id="findByCid" resultType="java.lang.Integer">
+
+        select count(id)
+        from product
+        where classify_id = #{id}
+    </select>
+    <!-- 前台展示商品列表-->
+    <select id="findProduct" resultType="com.ybau.transaction.domain.Product">
+
+        select * from product where 1 = 1
+        <if test="map.name!=null and map.name!=''">and product.name like CONCAT('%',#{map.name},'%')</if>
+        <if test="map.classifyId!=null and map.classifyId!=''">and classify_id like CONCAT('%',#{map.classifyId},'%')
+        </if>
+        <if test="map.startingPrice!=null and map.startingPrice!=''">AND price &gt;= #{map.startingPrice}</if>
+        <if test="map.closingPrice!=null and map.closingPrice!=''">and price &lt;= #{map.closingPrice}</if>
+        and status=1 ORDER BY name
+    </select>
+
+    <!-- 根据商品名字查询是否有重复-->
+    <select id="findByName" resultType="java.lang.Integer">
+        select count(1) from product where name=#{name} and core=#{core}
+        <if test="id!=null and id!=''">
+            and id!=#{id}
+        </if>
+    </select>
+
+    <!--根据商品Id查询商品 -->
+    <select id="finGoodId" resultType="com.ybau.transaction.domain.Goods">
+        SELECT id goodsId, NAME goodsName, price goodsPrice, images, warehouse, core goodsCore
+        FROM product
+        WHERE id = #{parseInt}
+
+    </select>
+
+    <select id="findUniversal" resultType="com.ybau.transaction.domain.Universal">
+        select *
+        from universal
+
+    </select>
+    <select id="findByPId" resultType="java.lang.Integer">
+        select warehouse
+        from product
+        where id = #{goodsId}
+    </select>
+    <!--根据商品名字查询是否存在商品-->
+    <select id="findByPName" resultType="com.ybau.transaction.domain.Product">
+        select * from product where name=#{gName}
+    </select>
+
+    <!--根据商品名字和商品编码查询-->
+    <select id="findNameBygCore" resultType="java.lang.String">
+        select core
+        from product
+        where name = #{gName}
+          and core = #{gCore}
+    </select>
+    <!--根据商品Id查询商品价格-->
+    <select id="findByPrive" resultType="java.lang.Double">
+        select price
+        from product
+        where id = #{goodsId}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ybau.transaction.mapper.GoodsMapper">
+
+    <!--插入查询的商品数据-->
+    <insert id="saveGood" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO goods (goodsId, goodsName, goodsPrice, goodsNumber, goodsCore, goodsImages, goodsDescription)
+        VALUES (#{map.goodsId}, #{map.goodsName}, #{map.goodsPrice}, #{map.goodsNumber}, #{map.goodsCore},
+                #{map.goodsImages}, #{map.goodsDescription})
+
+
+    </insert>
+    <!--维护中间表数据-->
+    <insert id="saveOrder_Goods">
+        insert into order_goods(orderId, goodsId)
+        VALUES (#{orderId}, #{goodsId})
+    </insert>
+    <!--导入商品-->
+    <insert id="addGoods" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into goods(goodsId, goodsName, goodsPrice, goodsNumber, goodsCore)
+        VALUES (#{goods.goodsId}, #{goods.goodsName}, #{goods.goodsPrice}, #{goods.goodsNumber}, #{goods.goodsCore})
+
+
+    </insert>
+    <!--导入中间表-->
+    <insert id="addGoodsByOrder">
+
+       insert into order_goods (orderId,goodsId) values(#{orderId},#{id})
+    </insert>
+    <!--修改商品信息-->
+    <update id="updateGoods">
+
+       update goods set goodsPrice=#{goods.goodsPrice},goodsNumber=#{goods.goodsNumber} where id=#{goods.id}
+    </update>
+    <!--更改商品转销售数量-->
+    <update id="updateSellNumber">
+        update goods set sellNumber=#{sellNumber} where id=#{id}
+
+    </update>
+    <!--修改退货件数-->
+    <update id="updateReturnNumber">
+        update goods set returnNumber=#{returnNumber} where id=#{id}
+
+    </update>
+    <!--根据ID删除商品信息-->
+    <delete id="deleteOrderId">
+
+        delete from goods where goodsId in (select goodsId from order_goods where orderId=#{orderId})
+    </delete>
+    <!--根据订单ID删除中间表信息-->
+    <delete id="deleteByOrder_Goods">
+
+        delete from order_goods where orderId=#{orderId}
+    </delete>
+    <!--根据订单ID查询商品数据测试-->
+    <select id="findByOrdersIdtest" resultType="com.ybau.transaction.domain.Goods">
+        select *
+        from goodstest
+        where goodsId in (select goodsId from order_goodstest where orderId = #{ordersId})
+
+    </select>
+    <!--查询订单下属商品-->
+    <select id="findByOrdersId" resultType="com.ybau.transaction.domain.Goods">
+        select *
+        from goods
+        where id in (select goodsId from order_goods where orderId = #{ordersId})
+
+    </select>
+    <!--查询是否有商品已下单-->
+    <select id="findByPId" resultType="java.lang.Integer">
+
+        select count(1)
+        from goods
+        where goodsId = #{id}
+    </select>
+    <!--根据商品ID查询商品信息-->
+    <select id="findById" resultType="com.ybau.transaction.domain.Goods">
+        select * from goods where id=#{id}
+    </select>
+</mapper>
